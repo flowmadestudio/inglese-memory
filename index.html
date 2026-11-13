@@ -269,18 +269,35 @@ dl.facts dd { margin: 0; min-width: 0; }
     <div class="nav"><button id="restart" type="button">Rifai il percorso</button><span></span></div>
   </section>
 
-  <!-- Quick check for "La conosco bene" -->
+  <!-- Asked after a right first answer -->
+  <section class="card step" data-step="ask" hidden>
+    <div class="eyebrow">Hai capito al primo ascolto</div>
+    <h2>Conosci già la parola <span class="say">gate</span>?</h2>
+    <p class="muted">Se la conosci, due prove veloci e passi oltre. Se no, la impariamo insieme.</p>
+    <div class="row"><button class="primary" id="askYes" type="button">Sì, la conosco</button><button id="askNo" type="button">No, insegnamela</button></div>
+  </section>
+
+  <!-- Quick check: meaning first, then pronunciation -->
   <section class="card step" data-step="quick" hidden>
-    <div class="eyebrow">Verifica veloce</div>
-    <h2>Se la conosci, la riconosci al volo.</h2>
-    <p class="muted">Ascolta Alex e scrivi la parola che manca: <em>«The ____ is closing!»</em></p>
-    <div class="row"><button class="gold play" data-audio="voce-gate.mp3" type="button">Ascolta Alex</button></div>
+    <div class="eyebrow">Verifica veloce · 2 prove</div>
+    <h2>1. Cosa vuol dire <span class="say">gate</span>?</h2>
+    <p class="muted">Rispondi come ti viene, in italiano o in inglese. Scrivi o parla.</p>
     <div class="answer">
-      <input type="text" id="kAnswer" placeholder="La parola" aria-label="La parola che manca" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <button class="primary" id="checkK" type="button">Controlla</button>
+      <textarea id="kMeaning" placeholder="Per esempio: è…" aria-label="Il significato di gate"></textarea>
+      <button class="mic" data-mic="kMeaning" type="button" aria-label="Rispondi a voce" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
     </div>
-    <div class="feedback" id="kFeedback" hidden></div>
-    <div class="nav" id="kNext" hidden><button data-go-back type="button">Torna al percorso</button><span></span></div>
+    <div class="row"><button class="primary" id="checkMeaning" type="button">Controlla</button></div>
+    <div class="feedback" id="mFeedback" hidden></div>
+
+    <div id="partTwo" hidden style="display:grid;gap:14px">
+      <h2>2. Leggi ad alta voce</h2>
+      <p class="cloze" id="kSentence">Yesterday we waited at the wrong gate for an hour.</p>
+      <p class="muted">Ieri abbiamo aspettato al gate sbagliato per un'ora.</p>
+      <div class="row"><button class="gold" id="kSpeak" type="button">🎙 Leggi</button><button id="kSelf" type="button" hidden>L'ho letta ad alta voce</button></div>
+      <div class="heard" id="kHeard" aria-live="polite"></div>
+      <div class="feedback" id="pFeedback" hidden></div>
+    </div>
+    <div class="nav" id="kNext" hidden><span></span><button class="primary" id="kContinue" type="button">Avanti</button></div>
   </section>
 </div>
 
@@ -301,10 +318,11 @@ dl.facts dd { margin: 0; min-width: 0; }
   function go(name) {
     Object.values(steps).forEach(s => s.hidden = s.dataset.step !== name);
     current = name;
-    if (name !== "quick") lastMain = name;
-    const idx = ORDER.indexOf(name === "quick" ? lastMain : name);
+    const side = name === "quick" || name === "ask";
+    if (!side) lastMain = name;
+    const idx = ORDER.indexOf(side ? lastMain : name);
     [...strip.children].forEach((b, i) => { b.className = i < idx ? "done" : i === idx ? "now" : ""; });
-    $("knowBtn").hidden = name === "quick" || name === "done";
+    $("knowBtn").hidden = side || name === "done";
     stopAudio(); resetClips();
     if (name === "done") renderPlan();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -431,8 +449,10 @@ dl.facts dd { margin: 0; min-width: 0; }
     $("explainShort").hidden = !qCorrect;
     $("explainLong").hidden = qCorrect;
     $("moreBtn").hidden = !qCorrect;
-    go(qCorrect ? "explain" : "cloze");
+    go(qCorrect ? "ask" : "cloze");
   });
+  $("askNo").addEventListener("click", () => go("explain"));
+  $("askYes").addEventListener("click", () => openCheck());
   $("moreBtn").addEventListener("click", () => { $("explainLong").hidden = false; $("moreBtn").hidden = true; });
 
   // Step 3: cloze
@@ -581,27 +601,65 @@ dl.facts dd { margin: 0; min-width: 0; }
     chain = true; $("playAll").classList.add("playing"); playClip(0);
   });
 
-  // "La conosco bene": one quick check with a new audio
-  $("knowBtn").addEventListener("click", () => { $("kAnswer").value = ""; $("kFeedback").hidden = true; $("kNext").hidden = true; go("quick"); });
-  $("checkK").addEventListener("click", () => {
-    const v = $("kAnswer").value.trim().toLowerCase().replace(/[^a-z]/g, "");
-    const fb = $("kFeedback"); fb.hidden = false; $("kNext").hidden = false;
-    if (v === "gate") {
-      fb.className = "feedback ok"; fb.textContent = "La conosci davvero. La archivio: tornerà solo ogni tanto, per non perderla.";
-      save({ known: Date.now() });
-      $("kNext").innerHTML = '<span></span><button class="primary" data-go="done" type="button">Vai alla fine</button>';
+  // "La conosco": two quick proofs. 1) meaning, word alone; 2) read a sentence aloud.
+  // Both passed: counts as learned, comes back once after a week. One failed: the full path.
+  let checkPassed = false;
+  function openCheck() {
+    $("kMeaning").value = ""; ["mFeedback", "partTwo", "pFeedback", "kNext"].forEach(id => $(id).hidden = true);
+    $("kHeard").textContent = ""; $("kSelf").hidden = false; $("kSpeak").hidden = !dictation;
+    $("kSelf").textContent = dictation ? "Il microfono non va: l'ho letta" : "L'ho letta ad alta voce"; checkPassed = false;
+    go("quick");
+  }
+  $("knowBtn").addEventListener("click", openCheck);
+  const MEANING = /(uscit|imbarco|cancell|portone|porta|varco|exit|door|boarding|ingresso|entrance)/i;
+  $("checkMeaning").addEventListener("click", () => {
+    const ans = $("kMeaning").value.trim(); const fb = $("mFeedback"); fb.hidden = false;
+    if (!ans) { fb.className = "feedback no"; fb.textContent = "Scrivi o di' cosa vuol dire, anche una parola sola."; return; }
+    if (MEANING.test(ans)) {
+      fb.className = "feedback ok"; fb.textContent = "Giusto: l'uscita d'imbarco, o un cancello. Ora la pronuncia.";
+      $("partTwo").hidden = false;
     } else {
-      fb.className = "feedback no"; fb.textContent = "Non ancora: la riconosci meglio dopo il percorso. Ti riporto dove eri.";
+      fb.className = "feedback no"; fb.textContent = "Non proprio: il gate è l'uscita d'imbarco. La impariamo insieme.";
+      finishCheck(false);
     }
   });
-  $("kAnswer").addEventListener("keydown", e => { if (e.key === "Enter") $("checkK").click(); });
+  function sentenceScore(said) {
+    const norm = s => s.toLowerCase().replace(/[^a-z' ]/g, " ").split(/\s+/).filter(Boolean);
+    const target = norm($("kSentence").textContent), heard = new Set(norm(said));
+    const hit = target.filter(w => heard.has(w)).length;
+    return { ratio: hit / target.length, gate: heard.has("gate") || heard.has("gates") };
+  }
+  $("kSpeak").addEventListener("click", () => {
+    if (!dictation) return;
+    subscribe();
+    startDictation($("kSpeak"), (text, final) => {
+      $("kHeard").textContent = text ? "Ho sentito: «" + text + "»" : "";
+      if (!final) return;
+      const { ratio, gate } = sentenceScore(text); const fb = $("pFeedback"); fb.hidden = false;
+      if (gate && ratio >= .7) { fb.className = "feedback ok"; fb.textContent = "Ti ho capito bene: " + Math.round(ratio * 100) + "% delle parole chiare."; dictation.stop(); finishCheck(true); }
+      else if (!gate) { fb.className = "feedback no"; fb.textContent = "Non ho capito «gate». Riprova: g-EI-t, con la «ei» lunga."; }
+      else { fb.className = "feedback no"; fb.textContent = "Ho capito «gate», ma solo il " + Math.round(ratio * 100) + "% della frase. Riprova più lentamente."; }
+    });
+  });
+  $("kSelf").addEventListener("click", () => finishCheck(true));
+  function finishCheck(ok) {
+    checkPassed = ok;
+    if (ok) save({ known: Date.now() });
+    $("kNext").hidden = false;
+    $("kContinue").textContent = ok ? "La conosci: vai alla fine" : "Facciamo il percorso";
+  }
+  $("kContinue").addEventListener("click", () => {
+    if (checkPassed) go("done");
+    else { $("explainShort").hidden = true; $("explainLong").hidden = false; $("moreBtn").hidden = true; go("explain"); }
+  });
 
   // Review plan (kept only in this browser)
   function save(obj) { try { localStorage.setItem("gate-progress", JSON.stringify({ ...load(), ...obj })); } catch (e) {} }
   function load() { try { return JSON.parse(localStorage.getItem("gate-progress") || "{}"); } catch (e) { return {}; } }
   function renderPlan() {
     const st = load(); const start = st.done || Date.now(); if (!st.done) save({ done: start });
-    const days = st.known ? [10, 30, 90, 180] : [1, 3, 7, 21];
+    // Already known: one check after a week, then long gaps
+    const days = st.known ? [7, 30, 90, 180] : [1, 3, 7, 21];
     const fmt = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numeric", month: "short" });
     $("plan").innerHTML = days.map(d => `<div><b>+${d}</b><span>${d === 1 ? "giorno" : "giorni"} · ${fmt.format(new Date(start + d * 864e5))}</span></div>`).join("");
   }
