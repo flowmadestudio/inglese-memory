@@ -1,0 +1,136 @@
+// Inglese Memory API: checks the Firebase login, keeps each account's progress in D1.
+// Secrets never live in the site: the browser only ever sends its Firebase ID token.
+
+const PROJECT_ID = "inglese-memory";
+const ALLOWED_ORIGINS = ["https://flowmadestudio.github.io", "http://localhost:8000", "http://127.0.0.1:8000"];
+const JWKS_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
+const MAX_BODY = 32 * 1024;
+const WORD_RE = /^[a-z][a-z' -]{0,39}$/;
+
+export default {
+  async fetch(request, env, ctx) {
+    const origin = request.headers.get("Origin") || "";
+    const cors = corsHeaders(origin);
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+
+    try {
+      const url = new URL(request.url);
+      if (url.pathname === "/health") return json({ ok: true }, 200, cors);
+
+      const user = await authenticate(request, ctx);
+      if (!user) return json({ error: "login_required" }, 401, cors);
+      await touchUser(env, user);
+
+      // GET /me → everything this account has saved
+      if (url.pathname === "/me" && request.method === "GET") {
+        const progress = await env.DB.prepare("SELECT word, data, updated_at FROM progress WHERE uid = ?").bind(user.uid).all();
+        const queue = await env.DB.prepare("SELECT word FROM queue WHERE uid = ? ORDER BY position").bind(user.uid).all();
+        const out = {};
+        for (const r of progress.results) out[r.word] = { ...safeParse(r.data), updatedAt: r.updated_at };
+        return json({ uid: user.uid, email: user.email, progress: out, queue: queue.results.map(r => r.word) }, 200, cors);
+      }
+
+      // PUT /progress/<word> {data} → save one word's progress
+      const m = url.pathname.match(/^\/progress\/([^/]+)$/);
+      if (m && request.method === "PUT") {
+        const word = decodeURIComponent(m[1]).toLowerCase();
+        if (!WORD_RE.test(word)) return json({ error: "bad_word" }, 400, cors);
+        const body = await readJson(request);
+        if (!body || typeof body.data !== "object") return json({ error: "bad_body" }, 400, cors);
+        const now = Date.now();
+        await env.DB.prepare(
+          "INSERT INTO progress (uid, word, data, updated_at) VALUES (?, ?, ?, ?) " +
+          "ON CONFLICT(uid, word) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at"
+        ).bind(user.uid, word, JSON.stringify(body.data), now).run();
+        return json({ ok: true, updatedAt: now }, 200, cors);
+      }
+
+      // PUT /queue {words: [...]} → replace the account's word queue
+      if (url.pathname === "/queue" && request.method === "PUT") {
+        const body = await readJson(request);
+        const words = Array.isArray(body?.words) ? [...new Set(body.words.map(w => String(w).toLowerCase()))] : null;
+        if (!words || words.length > 3000 || !words.every(w => WORD_RE.test(w))) return json({ error: "bad_body" }, 400, cors);
+        const stmts = [env.DB.prepare("DELETE FROM queue WHERE uid = ?").bind(user.uid)];
+        words.forEach((w, i) => stmts.push(env.DB.prepare("INSERT INTO queue (uid, position, word) VALUES (?, ?, ?)").bind(user.uid, i, w)));
+        await env.DB.batch(stmts);
+        return json({ ok: true }, 200, cors);
+      }
+
+      return json({ error: "not_found" }, 404, cors);
+    } catch (err) {
+      console.error(err);
+      return json({ error: "server_error" }, 500, cors);
+    }
+  },
+};
+
+function corsHeaders(origin) {
+  const h = { "Access-Control-Allow-Methods": "GET, PUT, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
+  if (ALLOWED_ORIGINS.includes(origin)) h["Access-Control-Allow-Origin"] = origin;
+  return h;
+}
+
+function json(obj, status, extra) {
+  return new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json; charset=utf-8", ...extra } });
+}
+
+function safeParse(s) { try { return JSON.parse(s); } catch { return {}; } }
+
+async function readJson(request) {
+  const text = await request.text();
+  if (text.length > MAX_BODY) return null;
+  return safeParse(text);
+}
+
+async function touchUser(env, user) {
+  const now = Date.now();
+  await env.DB.prepare(
+    "INSERT INTO users (uid, email, created_at, last_seen) VALUES (?, ?, ?, ?) " +
+    "ON CONFLICT(uid) DO UPDATE SET email = excluded.email, last_seen = excluded.last_seen"
+  ).bind(user.uid, user.email || null, now, now).run();
+}
+
+// ---- Firebase ID token check (RS256, Google's public keys) ----
+let jwksCache = { keys: null, until: 0 };
+
+async function getKeys(ctx) {
+  if (jwksCache.keys && Date.now() < jwksCache.until) return jwksCache.keys;
+  const res = await fetch(JWKS_URL, { cf: { cacheTtl: 3600 } });
+  if (!res.ok) throw new Error("jwks " + res.status);
+  const maxAge = Number((res.headers.get("Cache-Control") || "").match(/max-age=(\d+)/)?.[1] || 3600);
+  const { keys } = await res.json();
+  jwksCache = { keys, until: Date.now() + maxAge * 1000 };
+  return keys;
+}
+
+function b64urlToBytes(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(s + "===".slice((s.length + 3) % 4));
+  return Uint8Array.from(bin, c => c.charCodeAt(0));
+}
+
+async function authenticate(request, ctx) {
+  const auth = request.headers.get("Authorization") || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  let header, payload;
+  try {
+    header = JSON.parse(new TextDecoder().decode(b64urlToBytes(parts[0])));
+    payload = JSON.parse(new TextDecoder().decode(b64urlToBytes(parts[1])));
+  } catch { return null; }
+  if (header.alg !== "RS256" || !header.kid) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  if (payload.aud !== PROJECT_ID) return null;
+  if (payload.iss !== "https://securetoken.google.com/" + PROJECT_ID) return null;
+  if (typeof payload.sub !== "string" || !payload.sub || payload.sub.length > 128) return null;
+  if (!(payload.exp > now - 30) || !(payload.iat <= now + 30) || !(payload.auth_time <= now + 30)) return null;
+
+  const jwk = (await getKeys(ctx)).find(k => k.kid === header.kid);
+  if (!jwk) return null;
+  const key = await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
+  const ok = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64urlToBytes(parts[2]), new TextEncoder().encode(parts[0] + "." + parts[1]));
+  if (!ok) return null;
+  return { uid: payload.sub, email: payload.email || null };
+}

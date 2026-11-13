@@ -653,9 +653,16 @@ dl.facts dd { margin: 0; min-width: 0; }
     else { $("explainShort").hidden = true; $("explainLong").hidden = false; $("moreBtn").hidden = true; go("explain"); }
   });
 
-  // Review plan (kept only in this browser)
-  function save(obj) { try { localStorage.setItem("gate-progress", JSON.stringify({ ...load(), ...obj })); } catch (e) {} }
-  function load() { try { return JSON.parse(localStorage.getItem("gate-progress") || "{}"); } catch (e) { return {}; } }
+  // Review plan: saved in this browser and, once logged in, on the account (account.js)
+  function load() {
+    if (window.Account) return window.Account.load("gate");
+    try { return JSON.parse(localStorage.getItem("gate-progress") || "{}"); } catch (e) { return {}; }
+  }
+  function save(obj) {
+    const data = { ...load(), ...obj };
+    if (window.Account) window.Account.save("gate", data);
+    else try { localStorage.setItem("gate-progress", JSON.stringify(data)); } catch (e) {}
+  }
   function renderPlan() {
     const st = load(); const start = st.done || Date.now(); if (!st.done) save({ done: start });
     // Already known: one check after a week, then long gaps
@@ -674,6 +681,7 @@ dl.facts dd { margin: 0; min-width: 0; }
   go("listen");
 })();
 </script>
+<script type="module" src="account.js"></script>
 
 </body>
 </html>

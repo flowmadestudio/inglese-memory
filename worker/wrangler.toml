@@ -1,0 +1,9 @@
+name = "inglese-memory-api"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "inglese-memory"
+database_id = "779d7120-5091-4745-9536-4810fbb0e571"
