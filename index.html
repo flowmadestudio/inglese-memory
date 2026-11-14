@@ -108,6 +108,25 @@ dl.facts dd { margin: 0; min-width: 0; }
 .plan div { border: 2px dashed var(--line); border-radius: 12px; padding: 10px; text-align: center; }
 .plan b { display: block; font-family: var(--font-display); font-size: 1.3rem; }
 .plan span { font-size: .8rem; color: var(--muted); font-weight: 700; }
+.read { display: grid; gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+.tenses { display: flex; gap: 6px; flex-wrap: wrap; }
+.tenses button { font-size: .9rem; padding: .45em .95em; border-color: var(--line); }
+.tenses button[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.sentence { font: 600 clamp(1.3rem, 4vw, 1.75rem) var(--font-display); line-height: 1.55; display: flex; flex-wrap: wrap; gap: .1em .35em; max-width: none; }
+.sentence span { border-bottom: 4px solid transparent; }
+.sentence .key { background: var(--accent); color: var(--accent-ink); border-radius: 5px; padding: 0 .2em; }
+.sentence .good { border-bottom-color: var(--ok); }
+.sentence .mid { border-bottom-color: #e0a020; }
+.sentence .bad { border-bottom-color: #c0392b; }
+.score { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; }
+.score b { font-family: var(--font-display); font-size: 1.15rem; }
+.score .big { font: 700 1.7rem var(--font-display); }
+.score .big small { font-size: .9rem; color: var(--muted); }
+.tips { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.tips li { display: flex; gap: 10px; align-items: flex-start; }
+.tips li::before { content: ""; flex: none; width: 11px; height: 11px; margin-top: .45em; border-radius: 50%; background: var(--dot, #e0a020); }
+.tips li.bad { --dot: #c0392b; }
+.small { font-size: .85rem; }
 .know { position: fixed; right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 5; background: var(--card); box-shadow: 0 6px 20px rgb(0 0 0 / .15); }
 .nav { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 @media (max-width: 520px) { dl.facts { grid-template-columns: 1fr; gap: 2px; } dl.facts dd { margin-bottom: 8px; } .plan { grid-template-columns: repeat(2, 1fr); } }
@@ -200,7 +219,31 @@ dl.facts dd { margin: 0; min-width: 0; }
     </div>
     <div class="heard" id="heard" aria-live="polite"></div>
     <div class="feedback" id="sFeedback" hidden></div>
-    <p class="muted">Poi prova la frase intera: <em>«Excuse me, where is gate twenty-seven?»</em></p>
+
+    <div class="read" id="readBox">
+      <div class="row" style="justify-content:space-between">
+        <h2>Ora leggi la frase intera</h2>
+        <div class="tenses" role="tablist" aria-label="Tempo del verbo">
+          <button role="tab" type="button" data-tense="past" aria-selected="true">Passato</button>
+          <button role="tab" type="button" data-tense="present" aria-selected="false">Presente</button>
+          <button role="tab" type="button" data-tense="future" aria-selected="false">Futuro</button>
+        </div>
+      </div>
+      <p class="sentence" id="rSentence" aria-live="polite"></p>
+      <p class="muted" id="rItalian"></p>
+      <div class="row">
+        <button class="play" id="rListen" type="button">Ascolta la frase giusta</button>
+        <button class="gold" id="rSpeak" type="button">🎙 Leggi ad alta voce</button>
+      </div>
+      <div class="score" id="rResult" hidden>
+        <div class="row" style="justify-content:space-between;align-items:baseline">
+          <b id="rVerdict"></b><span class="big" id="rScore"></span>
+        </div>
+        <ul class="tips" id="rTips"></ul>
+        <p class="muted small" id="rDetail"></p>
+      </div>
+      <p class="feedback no" id="rError" hidden></p>
+    </div>
     <div class="nav"><span></span><button class="primary" data-go="scene" type="button">Avanti</button></div>
   </section>
 
@@ -491,6 +534,79 @@ dl.facts dd { margin: 0; min-width: 0; }
     });
   });
 
+  // Step 6b: read whole sentences, scored by Azure word by word (pronuncia.js)
+  const SENTENCES = {
+    past: { en: "Yesterday we waited at the wrong gate for an hour.", it: "Ieri abbiamo aspettato al gate sbagliato per un'ora." },
+    present: { en: "Excuse me, where is gate twenty-seven?", it: "Scusi, dov'è il gate ventisette?" },
+    future: { en: "Boarding will start at gate nine in ten minutes.", it: "L'imbarco inizierà al gate nove tra dieci minuti." },
+  };
+  let tense = "past";
+  const norm = w => w.toLowerCase().replace(/[^a-z']/g, "");
+  // Match Azure's words to the sentence's tokens (Azure may split "twenty-seven", or add extra words)
+  function align(text, words) {
+    const list = (words || []).filter(w => w.error !== "Insertion");
+    let j = 0;
+    return text.split(" ").map(tok => {
+      const t = norm(tok); let got = ""; const used = [];
+      while (j < list.length && got.length < t.length) { got += norm(list[j].word); used.push(list[j]); j++; }
+      if (!used.length) return null;
+      return { score: Math.min(...used.map(u => u.score)), error: used.find(u => u.error === "Omission")?.error || "None", word: tok.replace(/[^\w'-]/g, ""), phonemes: used.flatMap(u => u.phonemes) };
+    });
+  }
+  function renderSentence(words) {
+    const box = $("rSentence"); box.textContent = "";
+    const aligned = words ? align(SENTENCES[tense].en, words) : [];
+    SENTENCES[tense].en.split(" ").forEach((tok, i) => {
+      const sp = document.createElement("span"); sp.textContent = tok;
+      if (/^gates?\W*$/i.test(tok)) sp.classList.add("key");
+      const w = aligned[i];
+      if (w) sp.classList.add(w.error === "Omission" || w.score < 60 ? "bad" : w.score < 80 ? "mid" : "good");
+      box.appendChild(sp);
+    });
+    $("rItalian").textContent = SENTENCES[tense].it;
+  }
+  function pronError(err) {
+    const e = $("rError"); e.hidden = false;
+    e.textContent = err?.code === "login" ? "Per il voto della pronuncia devi essere entrato con il tuo account."
+      : err?.code === "mic" ? "Il browser non mi lascia usare il microfono. Permettilo dall'icona accanto all'indirizzo e riprova."
+      : err?.code === "nomatch" ? "Non ho sentito niente. Avvicinati al microfono e leggi dopo aver premuto."
+      : /429/.test(err?.message) ? "Per oggi hai usato tutte le prove di pronuncia. Riprendi domani!"
+      : "Il controllo della pronuncia non risponde. Riprova tra poco.";
+  }
+  document.querySelectorAll("[data-tense]").forEach(b => b.addEventListener("click", () => {
+    tense = b.dataset.tense;
+    document.querySelectorAll("[data-tense]").forEach(x => x.setAttribute("aria-selected", x === b));
+    $("rResult").hidden = true; $("rError").hidden = true; renderSentence();
+  }));
+  $("rListen").addEventListener("click", async () => {
+    const btn = $("rListen"); $("rError").hidden = true;
+    try { btn.classList.add("playing"); const a = await window.Pronuncia.speak(SENTENCES[tense].en); a.onended = () => btn.classList.remove("playing"); }
+    catch (err) { btn.classList.remove("playing"); pronError(err); }
+  });
+  let reading = false;
+  $("rSpeak").addEventListener("click", async () => {
+    if (reading || !window.Pronuncia) return;
+    const btn = $("rSpeak"); reading = true; btn.disabled = true; btn.textContent = "Preparo il microfono…";
+    $("rError").hidden = true; $("rResult").hidden = true;
+    try {
+      const r = await window.Pronuncia.assess(SENTENCES[tense].en, { onListening: () => { btn.textContent = "Ti ascolto… leggi ora"; btn.classList.add("on"); } });
+      renderSentence(r.words);
+      const n = r.pron;
+      $("rVerdict").textContent = n >= 85 ? "Ottimo, si capisce benissimo" : n >= 70 ? "Ti ho capito bene" : n >= 50 ? "Ci sei quasi" : "Riproviamo con calma";
+      $("rScore").innerHTML = `${n}<small>/100</small>`;
+      const weak = align(SENTENCES[tense].en, r.words).filter(Boolean).filter(w => w.error === "Omission" || w.score < 80).sort((a, b) => a.score - b.score).slice(0, 3);
+      $("rTips").innerHTML = "";
+      weak.forEach(w => { const li = document.createElement("li"); li.className = w.score < 60 || w.error === "Omission" ? "bad" : ""; li.textContent = window.Pronuncia.tipFor(w); $("rTips").appendChild(li); });
+      if (!weak.length) $("rTips").innerHTML = "<li>Tutte le parole chiare. Prova un altro tempo verbale.</li>";
+      $("rDetail").textContent = `Precisione ${r.accuracy} · Scorrevolezza ${r.fluency} · Completezza ${r.completeness}` + (r.prosody != null ? ` · Intonazione ${r.prosody}` : "");
+      $("rResult").hidden = false;
+      const best = load().speak || {};
+      save({ speak: { ...best, [tense]: Math.max(best[tense] || 0, n) } });
+    } catch (err) { pronError(err); }
+    reading = false; btn.disabled = false; btn.classList.remove("on"); btn.textContent = "🎙 Leggi di nuovo";
+  });
+  renderSentence();
+
   // Step 7: Alex scene
   const WORDS = [
     ["Oh", .08, .24, 0, "o"], ["no,", .32, .56, 0, "o"], ["no,", .64, .88, 0, "o"], ["no!", .96, 1.36, 0, "o"],
@@ -606,7 +722,7 @@ dl.facts dd { margin: 0; min-width: 0; }
   let checkPassed = false;
   function openCheck() {
     $("kMeaning").value = ""; ["mFeedback", "partTwo", "pFeedback", "kNext"].forEach(id => $(id).hidden = true);
-    $("kHeard").textContent = ""; $("kSelf").hidden = false; $("kSpeak").hidden = !dictation;
+    $("kHeard").textContent = ""; $("kSelf").hidden = false; $("kSpeak").hidden = !dictation && !window.Pronuncia?.available();
     $("kSelf").textContent = dictation ? "Il microfono non va: l'ho letta" : "L'ho letta ad alta voce"; checkPassed = false;
     go("quick");
   }
@@ -629,7 +745,23 @@ dl.facts dd { margin: 0; min-width: 0; }
     const hit = target.filter(w => heard.has(w)).length;
     return { ratio: hit / target.length, gate: heard.has("gate") || heard.has("gates") };
   }
-  $("kSpeak").addEventListener("click", () => {
+  $("kSpeak").addEventListener("click", async () => {
+    // With an account: Azure scores the reading. Pass = "gate" clear and the sentence mostly clear.
+    if (window.Pronuncia?.available()) {
+      const btn = $("kSpeak"), fb = $("pFeedback"); btn.disabled = true; btn.textContent = "Preparo il microfono…";
+      const sentence = $("kSentence").textContent;
+      try {
+        const r = await window.Pronuncia.assess(sentence, { onListening: () => { btn.textContent = "Ti ascolto… leggi ora"; } });
+        const g = align(sentence, r.words).find(w => w && /^gates?$/i.test(w.word));
+        $("kHeard").textContent = "Ho sentito: «" + r.heard + "»";
+        fb.hidden = false;
+        if (g && g.score >= 60 && r.pron >= 60 && r.completeness >= 70) { fb.className = "feedback ok"; fb.textContent = `Ti ho capito bene: ${r.pron}/100.`; finishCheck(true); }
+        else if (!g || g.score < 60) { fb.className = "feedback no"; fb.textContent = "«gate» non era chiara. Riprova: g-EI-t, con la «ei» lunga."; }
+        else { fb.className = "feedback no"; fb.textContent = `«gate» va bene, ma la frase è al ${r.pron}/100. ` + (align(sentence, r.words).filter(w => w && w.score < 60).slice(0, 2).map(w => window.Pronuncia.tipFor(w)).join(" ") || "Riprova più lentamente."); }
+      } catch (err) { fb.hidden = false; fb.className = "feedback no"; fb.textContent = "Il controllo della pronuncia non risponde. Usa «L'ho letta ad alta voce» o riprova."; }
+      btn.disabled = false; btn.textContent = "🎙 Leggi di nuovo";
+      return;
+    }
     if (!dictation) return;
     subscribe();
     startDictation($("kSpeak"), (text, final) => {
@@ -682,6 +814,7 @@ dl.facts dd { margin: 0; min-width: 0; }
 })();
 </script>
 <script type="module" src="account.js"></script>
+<script type="module" src="pronuncia.js"></script>
 
 </body>
 </html>

@@ -6,6 +6,17 @@ const ALLOWED_ORIGINS = ["https://flowmadestudio.github.io", "http://localhost:8
 const JWKS_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 const MAX_BODY = 32 * 1024;
 const WORD_RE = /^[a-z][a-z' -]{0,39}$/;
+// One token covers ~9 minutes of reading; 60 a day is far more than a real session needs.
+const SPEECH_TOKENS_PER_DAY = 60;
+
+async function azureToken(env) {
+  if (!env.AZURE_SPEECH_KEY || !env.AZURE_SPEECH_REGION) return null;
+  const res = await fetch(`https://${env.AZURE_SPEECH_REGION}.api.cognitive.microsoft.com/sts/v1.0/issueToken`, {
+    method: "POST", headers: { "Ocp-Apim-Subscription-Key": env.AZURE_SPEECH_KEY, "Content-Length": "0" },
+  });
+  if (!res.ok) { console.error("azure token", res.status); return null; }
+  return res.text();
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -15,7 +26,11 @@ export default {
 
     try {
       const url = new URL(request.url);
-      if (url.pathname === "/health") return json({ ok: true }, 200, cors);
+      if (url.pathname === "/health") {
+        // ?speech=1 checks that the Azure key still works, without exposing anything
+        if (url.searchParams.get("speech") === "1") return json({ ok: true, speech: !!(await azureToken(env)) }, 200, cors);
+        return json({ ok: true }, 200, cors);
+      }
 
       const user = await authenticate(request, ctx);
       if (!user) return json({ error: "login_required" }, 401, cors);
@@ -54,6 +69,19 @@ export default {
         words.forEach((w, i) => stmts.push(env.DB.prepare("INSERT INTO queue (uid, position, word) VALUES (?, ?, ?)").bind(user.uid, i, w)));
         await env.DB.batch(stmts);
         return json({ ok: true }, 200, cors);
+      }
+
+      // GET /speech-token → a 10-minute Azure Speech token; the key itself never leaves the server
+      if (url.pathname === "/speech-token" && request.method === "GET") {
+        const day = new Date().toISOString().slice(0, 10);
+        const row = await env.DB.prepare(
+          "INSERT INTO speech_usage (uid, day, count) VALUES (?, ?, 1) " +
+          "ON CONFLICT(uid, day) DO UPDATE SET count = count + 1 RETURNING count"
+        ).bind(user.uid, day).first();
+        if (row.count > SPEECH_TOKENS_PER_DAY) return json({ error: "daily_limit" }, 429, cors);
+        const token = await azureToken(env);
+        if (!token) return json({ error: "speech_unavailable" }, 502, cors);
+        return json({ token, region: env.AZURE_SPEECH_REGION, expiresIn: 540 }, 200, { ...cors, "Cache-Control": "no-store" });
       }
 
       return json({ error: "not_found" }, 404, cors);

@@ -157,6 +157,9 @@ window.addEventListener("online", () => pending.forEach((d, w) => push(w, d)));
 window.Account = {
   save(word, data) { writeLocal(word, data); if (auth.currentUser) push(word, data); },
   load: readLocal,
+  // A short-lived Azure Speech token from our server (the Azure key stays on the server).
+  speechToken: () => api("/speech-token"),
+  signedIn: () => !!auth.currentUser,
 };
 
 // Each account gets its own copy in this browser: switching account must not mix them.

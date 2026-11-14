@@ -3,6 +3,10 @@ main = "src/index.js"
 compatibility_date = "2025-06-01"
 workers_dev = true
 
+[vars]
+AZURE_SPEECH_REGION = "northeurope"
+# AZURE_SPEECH_KEY is a secret: `wrangler secret put AZURE_SPEECH_KEY` (never in this file)
+
 [[d1_databases]]
 binding = "DB"
 database_name = "inglese-memory"
