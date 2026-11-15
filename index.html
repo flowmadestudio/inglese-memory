@@ -171,7 +171,7 @@ a.gold { display: inline-block; font-weight: 800; text-decoration: none; border-
 (() => {
   const $ = id => document.getElementById(id);
   const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); kids.forEach(k => e.append(k)); return e; };
-  const LESSONS = { gate: "parola.html" }; // ready-made lessons; the others are being prepared
+  let LESSONS = { gate: "parola.html" }; // ready-made lessons (data/words/index.json); the others are being prepared
   const DEFAULT_QUEUE = ["gate", "unique", "employee"];
   const PSEUDO = ["plinder", "gartle", "drutch", "fenstable", "mornative", "sprolley", "quintrous", "trinsome"];
   const PROFILE = "meta profile";
@@ -364,7 +364,8 @@ a.gold { display: inline-block; font-weight: 800; text-decoration: none; border-
   $("testOpen").onclick = openTest;
 
   // ---- start ----
-  Promise.all([fetch("data/ngsl.json").then(r => r.json()), fetch("data/items.json").then(r => r.json())]).then(([ngsl, items]) => {
+  Promise.all([fetch("data/ngsl.json").then(r => r.json()), fetch("data/items.json").then(r => r.json()), fetch("data/words/index.json").then(r => r.json()).catch(() => null)]).then(([ngsl, items, ready]) => {
+    if (ready) LESSONS = ready;
     W = ngsl.words; W.forEach((w, i) => RANK[w] = i + 1); GRAMMAR = new Set(ngsl.grammar);
     W.forEach(w => BY_ID[w] = { id: w, type: "parola", label: w, rank: RANK[w] });
     PAIRS = items.pairs; PAIRS.forEach(p => { BY_ID[p.id] = { ...p, type: "coppia", label: p.label }; PAIR_BY_BASE[p.base] = p; });

@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3efe7">
+<style>body{margin:0} img{max-width:100%} :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Lezione</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one lesson card at a time, like a departure board ticket; progress strip on top, "La conosco bene" floating bottom-right */
+:root {
+  --bg: #f3efe7; --fg: #2a2320; --muted: #6e6259; --line: #ddd4c6; --card: #fffaf2;
+  --accent: #f2b632; --accent-ink: #2a2320; --curtain: #8e2020; --key: #c8541e;
+  --ok: #2f7d4f; --ok-bg: #e5f4e4; --warn: #9a5a06; --warn-bg: #f9eeda;
+  --font-display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #15171c; --fg: #f1ece4; --muted: #a59c92; --line: #2c2f37; --card: #1d2027; --accent: #f5c04a; --accent-ink: #1a1510; --curtain: #b33a3a; --key: #f5c04a; --ok: #7fd39b; --ok-bg: #1d3326; --warn: #f0c070; --warn-bg: #3a2e18; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #15171c; --fg: #f1ece4; --muted: #a59c92; --line: #2c2f37; --card: #1d2027; --accent: #f5c04a; --accent-ink: #1a1510; --curtain: #b33a3a; --key: #f5c04a; --ok: #7fd39b; --ok-bg: #1d3326; --warn: #f0c070; --warn-bg: #3a2e18; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 96px; }
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; }
+.brand span { color: var(--key); }
+.steps { display: flex; gap: 4px; flex: 1 1 260px; max-width: 420px; }
+.steps i { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.steps i.done { background: var(--accent); }
+.steps i.now { background: var(--fg); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: clamp(18px, 4vw, 30px); display: grid; gap: 16px; }
+.eyebrow { font: 800 .74rem var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: clamp(1.6rem, 5vw, 2.2rem); }
+h2 { font-size: clamp(1.3rem, 4vw, 1.7rem); }
+p { margin: 0; max-width: 62ch; }
+.muted { color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: 700 1rem var(--font-body); border-radius: 999px; padding: .65em 1.2em; cursor: pointer; border: 2px solid var(--fg); background: transparent; color: var(--fg); }
+button.primary { background: var(--fg); color: var(--bg); }
+button.gold { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--key); outline-offset: 2px; }
+.play { display: inline-flex; align-items: center; gap: .55em; }
+.play::before { content: ""; width: 0; height: 0; border-left: .7em solid currentColor; border-top: .45em solid transparent; border-bottom: .45em solid transparent; }
+.play.playing::before { width: .6em; height: .8em; border: 0; background: linear-gradient(90deg, currentColor 35%, transparent 35% 65%, currentColor 65%); }
+textarea, input[type=text] { width: 100%; font: 600 1.05rem var(--font-body); padding: .7em .9em; border-radius: 12px; border: 2px solid var(--line); background: var(--bg); color: var(--fg); }
+textarea { min-height: 84px; resize: vertical; }
+.answer { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+.mic { width: 52px; height: 52px; padding: 0; display: grid; place-items: center; }
+.mic svg { width: 22px; height: 22px; }
+.mic.on { background: var(--curtain); border-color: var(--curtain); color: #fff; }
+.feedback { border-radius: 12px; padding: 12px 14px; font-weight: 600; }
+.feedback.ok { background: var(--ok-bg); color: var(--ok); }
+.feedback.no { background: var(--warn-bg); color: var(--warn); }
+.cloze { font: 600 clamp(1.05rem, 3vw, 1.3rem) var(--font-display); line-height: 1.7; }
+.cloze .blank { display: inline-block; min-width: 3.5em; border-bottom: 3px solid var(--key); text-align: center; color: var(--key); }
+.word { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.word strong { font-family: var(--font-display); font-size: clamp(2.6rem, 9vw, 3.6rem); line-height: 1; }
+.word .ipa { font-size: 1.15rem; color: var(--muted); }
+.say { font-weight: 800; color: var(--key); }
+dl.facts { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; }
+dl.facts dt { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 800; padding-top: .2em; }
+dl.facts dd { margin: 0; min-width: 0; }
+.voices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.voice { display: grid; gap: 2px; text-align: left; border-radius: 14px; padding: 12px 14px; border: 2px solid var(--line); background: var(--bg); }
+.voice b { font-family: var(--font-display); font-size: 1.05rem; }
+.voice span { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.voice.playing { border-color: var(--key); }
+.heard { font: 700 clamp(1.3rem, 4vw, 1.8rem) var(--font-display); min-height: 1.4em; }
+.stage { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: var(--curtain); }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#cam { transform-box: view-box; transform-origin: 560px 380px; }
+.ipa-tag { position: absolute; right: 9%; bottom: 6%; background: var(--accent); color: var(--accent-ink); font: 700 clamp(.75rem, 2vw, 1.05rem) var(--font-display); padding: .3em .7em; border-radius: .6em; opacity: 0; transition: opacity .2s; }
+.ipa-tag.on { opacity: 1; }
+.start { position: absolute; inset: 0; display: grid; place-items: center; background: rgb(40 10 10 / .3); border: 0; border-radius: 0; padding: 0; }
+.start span { font: 700 clamp(1rem, 3vw, 1.4rem) var(--font-display); background: var(--accent); color: var(--accent-ink); padding: .6em 1.2em; border-radius: 999px; }
+.captions { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.05rem, 3vw, 1.5rem); display: flex; flex-wrap: wrap; gap: .1em .35em; justify-content: center; }
+.captions span { color: var(--muted); }
+.captions span.said, .captions span.now { color: var(--fg); }
+.captions span.key { color: var(--key); text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 5px; }
+.clips { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.clip { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border: 2px solid var(--line); border-radius: 14px; background: var(--bg); }
+.clip.playing { border-color: var(--key); }
+.clip > div { min-width: 0; display: grid; gap: 2px; }
+.clip b { font-family: var(--font-display); font-size: 1.05rem; }
+.clip span { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.clip .ctext { margin-top: 6px; font-size: .98rem; }
+.clip mark { background: var(--accent); color: var(--accent-ink); padding: 0 .2em; border-radius: 4px; }
+.cbtn { width: 46px; height: 46px; padding: 0; display: grid; place-items: center; background: var(--fg); border-color: var(--fg); }
+.cbtn::before { content: ""; border-left: 13px solid var(--bg); border-top: 8px solid transparent; border-bottom: 8px solid transparent; margin-left: 4px; }
+.clip.playing .cbtn::before { border: 0; width: 12px; height: 14px; margin: 0; background: linear-gradient(90deg, var(--bg) 35%, transparent 35% 65%, var(--bg) 65%); }
+.show { font-size: .85rem; padding: .45em .8em; }
+@media (max-width: 520px) { .clip { grid-template-columns: auto 1fr; } .clip .show { grid-column: 1 / -1; justify-self: start; } }
+.links { display: grid; gap: 10px; }
+.link { display: grid; gap: 2px; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--line); color: var(--fg); text-decoration: none; }
+.link b { font-family: var(--font-display); font-size: 1.1rem; }
+.link span { color: var(--muted); font-size: .92rem; }
+.link:hover { border-color: var(--key); }
+.tag { display: inline-block; font: 800 .7rem var(--font-body); letter-spacing: .06em; text-transform: uppercase; padding: .2em .55em; border-radius: 6px; background: var(--warn-bg); color: var(--warn); margin-left: 6px; vertical-align: middle; }
+.plan { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.plan button { display: grid; gap: 2px; border: 2px dashed var(--line); border-radius: 12px; padding: 10px; text-align: center; font-weight: 700; }
+.plan b { display: block; font-family: var(--font-display); font-size: 1.3rem; }
+.plan span { font-size: .8rem; color: var(--muted); font-weight: 700; }
+.plan em { font-style: normal; font-size: .78rem; color: var(--key); }
+.plan .due { border-style: solid; border-color: var(--accent); background: var(--warn-bg); }
+.plan .did { border-style: solid; border-color: var(--ok); }
+.plan .did em { color: var(--ok); }
+.due-banner { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; background: var(--warn-bg); border: 2px solid var(--accent); border-radius: 16px; padding: 12px 16px; }
+.due-banner b { font-family: var(--font-display); font-size: 1.1rem; }
+.rv-items { display: grid; gap: 14px; }
+.rv-item { border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; background: var(--bg); }
+.rv-item h3 { margin: 0; font: 700 1.1rem var(--font-display); }
+.rv-text { display: grid; gap: 6px; }
+.rv-text p { max-width: none; }
+.rv-text .who { font-weight: 800; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.rv-text .now { background: var(--warn-bg); border-radius: 8px; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opts button { min-width: 5.5em; font-family: var(--font-display); font-size: 1.1rem; }
+.opts .right { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.opts button:disabled { opacity: 1; cursor: default; }
+.opts .wrong { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+.read { display: grid; gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+.tenses { display: flex; gap: 6px; flex-wrap: wrap; }
+.tenses button { font-size: .9rem; padding: .45em .95em; border-color: var(--line); }
+.tenses button[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.sentence { font: 600 clamp(1.3rem, 4vw, 1.75rem) var(--font-display); line-height: 1.55; display: flex; flex-wrap: wrap; gap: .1em .35em; max-width: none; }
+.sentence span { border-bottom: 4px solid transparent; }
+.sentence .key { background: var(--accent); color: var(--accent-ink); border-radius: 5px; padding: 0 .2em; }
+.sentence .good { border-bottom-color: var(--ok); }
+.sentence .mid { border-bottom-color: #e0a020; }
+.sentence .bad { border-bottom-color: #c0392b; }
+.score { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; }
+.score b { font-family: var(--font-display); font-size: 1.15rem; }
+.score .big { font: 700 1.7rem var(--font-display); }
+.score .big small { font-size: .9rem; color: var(--muted); }
+.tips { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.tips li { display: flex; gap: 10px; align-items: flex-start; }
+.tips li::before { content: ""; flex: none; width: 11px; height: 11px; margin-top: .45em; border-radius: 50%; background: var(--dot, #e0a020); }
+.tips li.bad { --dot: #c0392b; }
+.small { font-size: .85rem; }
+.know { position: fixed; right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 5; background: var(--card); box-shadow: 0 6px 20px rgb(0 0 0 / .15); }
+.homeLink { font-weight: 800; color: var(--fg); background: var(--accent); border-radius: 999px; padding: .65em 1.2em; text-decoration: none; }
+.nav { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 520px) { dl.facts { grid-template-columns: 1fr; gap: 2px; } dl.facts dd { margin-bottom: 8px; } .plan { grid-template-columns: repeat(2, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .ipa-tag { transition: none; } }
+</style>
+<style>
+/* Extra for the data-driven lesson: talking-head stage with felt curtains, speech bubble for the other voice */
+.stage.talk { background: linear-gradient(#b8452f, #7d2418); }
+.stage.talk svg { position: absolute; inset: 0; }
+.bubble-other { position: absolute; right: 5%; top: 8%; max-width: 46%; background: #fffaf2; color: #2a2320; border: 3px solid #2a2320; border-radius: 18px 18px 4px 18px; padding: .5em .8em; font: 600 clamp(.8rem, 2.4vw, 1.15rem) var(--font-display); opacity: 0; transition: opacity .15s; }
+.bubble-other.on { opacity: 1; }
+.bubble-other b { display: block; font: 800 .7em var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: #8e2020; }
+.qtext { font: 600 clamp(1.15rem, 3.5vw, 1.45rem) var(--font-display); }
+.clozes { display: grid; gap: 14px; }
+.loading { padding: 40px 0; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="due-banner" id="dueBanner" hidden>
+    <div><b id="dueTitle"></b><br><span class="muted" id="dueSub"></span></div>
+    <button class="gold" type="button" id="dueGo">Fai il ripasso</button>
+  </div>
+  <div class="top">
+    <a class="brand" href="./" aria-label="Torna alla home" style="color:inherit;text-decoration:none">‹ Inglese Memory<span>.</span> <span class="muted" style="font-weight:600;font-size:1rem" id="brandWord"></span></a>
+    <div class="steps" id="steps" aria-hidden="true"></div>
+  </div>
+  <p class="loading" id="loading">Carico la lezione…</p>
+  <p class="feedback no" id="loginNote" hidden>Per sentire le voci e il voto della pronuncia devi essere entrato con il tuo account.</p>
+
+  <!-- 1. Listen, no text -->
+  <section class="card step" data-step="listen" hidden>
+    <div class="eyebrow">Passo 1 · Ascolta</div>
+    <h1>Prima solo le orecchie.</h1>
+    <p class="muted" id="listenIntro"></p>
+    <ul class="clips" id="listenClips"></ul>
+    <div class="nav"><span></span><button class="primary" data-go="question" type="button">Ho ascoltato</button></div>
+  </section>
+
+  <!-- 2. Question in English, never containing the word -->
+  <section class="card step" data-step="question" hidden>
+    <div class="eyebrow">Passo 2 · Hai capito?</div>
+    <p class="qtext" id="qText"></p>
+    <p class="muted" id="qIt"></p>
+    <div class="answer"><textarea id="qAnswer" placeholder="Rispondi in italiano o in inglese"></textarea><button class="mic" data-mic="qAnswer" type="button" aria-label="Rispondi a voce" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></div>
+    <div class="row"><button class="primary" id="qCheck" type="button">Controlla</button><button id="qReplay" class="play" type="button">Riascolta</button></div>
+    <p class="feedback" id="qFeedback" hidden></p>
+    <div class="nav"><button data-go="listen" type="button">Indietro</button><button class="primary" id="qNext" type="button" hidden>Avanti</button></div>
+  </section>
+
+  <!-- Asked after a right answer -->
+  <section class="card step" data-step="ask" hidden>
+    <div class="eyebrow">Una domanda</div>
+    <h2>Conosci già la parola <span id="askWord" class="say"></span>?</h2>
+    <div class="nav"><button type="button" id="askNo">No, imparala con me</button><button class="primary" type="button" id="askYes">Sì, la conosco</button></div>
+  </section>
+
+  <!-- Quick check for words you already know -->
+  <section class="card step" data-step="quick" hidden>
+    <div class="eyebrow">Verifica veloce</div>
+    <div class="word"><strong id="kWord"></strong></div>
+    <p><b>1.</b> Cosa vuol dire? Rispondi in italiano.</p>
+    <textarea id="kMeaning" placeholder="Il significato"></textarea>
+    <div class="row"><button class="primary" id="kCheck" type="button">Controlla</button></div>
+    <p class="feedback" id="kFeedback" hidden></p>
+    <div id="kRead" hidden style="display:grid;gap:12px">
+      <p><b>2.</b> Ora leggila ad alta voce:</p>
+      <p class="sentence" id="kSentence"></p>
+      <p class="muted" id="kSentenceIt"></p>
+      <div class="row"><button class="gold" id="kSpeak" type="button">🎙 Leggi ad alta voce</button><button id="kSelf" type="button">Il microfono non va: l'ho letta</button></div>
+      <p class="feedback" id="kReadFb" hidden></p>
+    </div>
+    <div class="nav"><button type="button" data-go="explain">Lascia stare, imparala</button><span></span></div>
+  </section>
+
+  <!-- 3. Cloze -->
+  <section class="card step" data-step="cloze" hidden>
+    <div class="eyebrow">Passo 3 · Completa</div>
+    <p class="muted" id="clozeIntro"></p>
+    <div class="clozes" id="clozes"></div>
+    <div class="nav"><button data-go="question" type="button">Indietro</button><button class="primary" data-go="explain" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 4. Explanation -->
+  <section class="card step" data-step="explain" hidden>
+    <div class="eyebrow">Passo 4 · La parola</div>
+    <div class="word"><strong id="eWord"></strong><span class="ipa" id="eIpa"></span><button class="play gold" id="eListen" type="button">Ascolta</button></div>
+    <p id="eShort" style="font-weight:700"></p>
+    <dl class="facts" id="eFacts"></dl>
+    <div class="nav"><button data-go="cloze" type="button">Indietro</button><button class="primary" data-go="voices" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 5. Many voices -->
+  <section class="card step" data-step="voices" hidden>
+    <div class="eyebrow">Passo 5 · Voci diverse</div>
+    <p class="muted" id="voicesIntro"></p>
+    <div class="voices" id="voiceGrid"></div>
+    <div class="nav"><button data-go="explain" type="button">Indietro</button><button class="primary" data-go="speak" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 6. You say it -->
+  <section class="card step" data-step="speak" hidden>
+    <div class="eyebrow">Passo 6 · La dici tu</div>
+    <div class="read" style="border:0;padding:0">
+      <div class="row" style="justify-content:space-between">
+        <h2>Leggi la frase ad alta voce</h2>
+        <div class="tenses" role="tablist" aria-label="Tempo del verbo">
+          <button role="tab" type="button" data-tense="past" aria-selected="true">Passato</button>
+          <button role="tab" type="button" data-tense="present" aria-selected="false">Presente</button>
+          <button role="tab" type="button" data-tense="future" aria-selected="false">Futuro</button>
+        </div>
+      </div>
+      <p class="sentence" id="rSentence" aria-live="polite"></p>
+      <p class="muted" id="rItalian"></p>
+      <div class="row"><button class="play" id="rListen" type="button">Ascolta la frase giusta</button><button class="gold" id="rSpeak" type="button">🎙 Leggi ad alta voce</button></div>
+      <div class="score" id="rResult" hidden>
+        <div class="row" style="justify-content:space-between;align-items:baseline"><b id="rVerdict"></b><span class="big" id="rScore"></span></div>
+        <ul class="tips" id="rTips"></ul>
+        <p class="muted small" id="rDetail"></p>
+      </div>
+      <p class="feedback no" id="rError" hidden></p>
+    </div>
+    <div class="nav"><button data-go="voices" type="button">Indietro</button><button class="primary" data-go="scene" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 7. Alex scene -->
+  <section class="card step" data-step="scene" hidden>
+    <div class="eyebrow">Passo 7 · La scenetta di Alex</div>
+    <h2 id="sTitle"></h2>
+    <p class="muted" id="sIntro"></p>
+    <div class="stage talk">
+      <svg viewBox="0 0 1024 576" role="img" aria-label="Alex, il pupazzo di feltro, parla sul palco del teatrino.">
+        <g id="curtains"></g>
+        <g id="puppet">
+          <ellipse cx="0" cy="300" rx="150" ry="22" fill="#000" opacity=".2"/>
+          <g id="armB"><image href="armB.png" x="-60" y="-20" width="122" height="278"/></g>
+          <g id="legB"><image href="legB.png" x="-80" y="-10" width="195" height="307"/></g>
+          <g id="legA"><image href="legA.png" x="-80" y="-10" width="189" height="308"/></g>
+          <g id="torso"><image href="torso.png" x="-235" y="-300" width="345" height="307"/></g>
+          <g id="head">
+            <image class="face" data-expr="happy" href="head.png" x="-250" y="-330" width="415" height="350"/>
+            <image class="face" data-expr="panic" href="head-panic.png" x="-250" y="-330" width="415" height="350" visibility="hidden"/>
+            <image class="face" data-expr="shock" href="head-shock.png" x="-250" y="-330" width="415" height="350" visibility="hidden"/>
+            <image class="face" data-expr="sad" href="head-sad.png" x="-250" y="-330" width="415" height="350" visibility="hidden"/>
+            <image class="mouth" data-shape="half" href="mouth-half.png" width="92" height="84" visibility="hidden"/>
+            <image class="mouth" data-shape="open" href="mouth-open.png" width="92" height="84" visibility="hidden"/>
+            <image class="mouth" data-shape="o" href="mouth-o.png" width="92" height="84" visibility="hidden"/>
+          </g>
+          <g id="armA"><image href="armA.png" x="-70" y="-20" width="141" height="279"/></g>
+        </g>
+      </svg>
+      <div class="bubble-other" id="otherBubble"><b id="otherWho"></b><span id="otherText"></span></div>
+      <div class="ipa-tag" id="ipaTag"></div>
+      <button class="start" id="sceneStart" type="button" aria-label="Guarda la scenetta"><span>▶ Guarda la scenetta</span></button>
+    </div>
+    <div class="captions" id="captions" aria-live="polite"></div>
+    <p class="muted" id="captionIt" style="text-align:center;max-width:none"></p>
+    <div class="nav"><button id="sceneReplay" type="button">Riguarda</button><button class="primary" data-go="real" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 8. Real situations, in-app player -->
+  <section class="card step" data-step="real" hidden>
+    <div class="eyebrow">Passo 8 · Situazioni vere</div>
+    <p class="muted" id="realIntro"></p>
+    <ul class="clips" id="realClips"></ul>
+    <div class="nav"><button data-go="scene" type="button">Indietro</button><button class="primary" data-go="done" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 9. Done + reviews -->
+  <section class="card step" data-step="done" hidden>
+    <div class="eyebrow">Passo 9 · Fatto</div>
+    <h1 id="dTitle"></h1>
+    <p>Adesso la parola va fissata. Te la riproporrò in questi giorni, ogni volta in un contesto nuovo:</p>
+    <div class="plan" id="plan"></div>
+    <p class="muted">Tocca un riquadro per provare subito quel ripasso.</p>
+    <div class="nav"><button id="restart" type="button">Rifai il percorso</button><a class="homeLink" href="./">Torna alla home</a></div>
+  </section>
+
+  <section class="card step" data-step="review" hidden>
+    <div class="eyebrow" id="rvEyebrow">Ripasso</div>
+    <h2 id="rvTitle"></h2>
+    <p class="muted" id="rvIntro"></p>
+    <div class="rv-items" id="rvItems"></div>
+    <p class="feedback no" id="rvError" hidden></p>
+    <div class="nav"><button type="button" id="rvBack">Indietro</button><button class="primary" type="button" id="rvDone">Ho finito il ripasso</button></div>
+  </section>
+
+  <section class="card" id="notFound" hidden>
+    <h2>Questa lezione non è ancora pronta</h2>
+    <p class="muted">La sto preparando. Intanto torna alla home e scegli un'altra parola.</p>
+    <div class="nav"><span></span><a class="homeLink" href="./">Torna alla home</a></div>
+  </section>
+</div>
+<button class="know" id="knowBtn" type="button" hidden>La conosco bene</button>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); kids.forEach(k => e.append(k)); return e; };
+  const P = () => window.Pronuncia;
+  const ORDER = ["listen", "question", "cloze", "explain", "voices", "speak", "scene", "real", "done"];
+  const id = (new URLSearchParams(location.search).get("w") || "").toLowerCase();
+  let D = null, current = null;
+
+  // ---- progress for this word: browser copy + account (account.js) ----
+  const load = () => window.Account ? window.Account.load(id) : (() => { try { return JSON.parse(localStorage.getItem(id + "-progress") || "{}"); } catch { return {}; } })();
+  const save = obj => { const d = { ...load(), ...obj }; if (window.Account) window.Account.save(id, d); else try { localStorage.setItem(id + "-progress", JSON.stringify(d)); } catch {} };
+
+  function go(name) {
+    current = name; P()?.stop(); stopScene();
+    document.querySelectorAll(".step").forEach(s => s.hidden = s.dataset.step !== name);
+    const i = ORDER.indexOf(name);
+    $("steps").innerHTML = ORDER.map((_, j) => `<i class="${j < i ? "done" : j === i ? "now" : ""}"></i>`).join("");
+    $("knowBtn").hidden = !["listen", "question", "cloze", "explain"].includes(name);
+    $("dueBanner").hidden = true;
+    if (name === "done") renderPlan(); else if (name !== "review") updateBanner();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  document.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if (g) go(g.dataset.go); });
+
+  // ---- voices: a list of clips, play one or all, text on demand ----
+  function voiceError(box, err) {
+    let f = box.querySelector(".feedback.err");
+    if (!f) { f = el("p", { className: "feedback no err" }); box.append(f); }
+    f.textContent = err?.code === "login" ? "Entra con il tuo account per sentire le voci." : "La voce non risponde. Riprova tra poco.";
+  }
+  function clipList(ul, clips, { showText = true, mark = true } = {}) {
+    ul.innerHTML = "";
+    clips.forEach(c => {
+      const li = el("li", { className: "clip" });
+      const btn = el("button", { className: "cbtn", type: "button", ariaLabel: "Ascolta " + (c.title || c.label) });
+      const txt = el("p", { className: "ctext", hidden: true });
+      txt.innerHTML = c.text.replace(new RegExp("\\b(" + D.word + "\\w*)", "gi"), mark ? "<mark>$1</mark>" : "$1");
+      const info = el("div", {}, el("b", { textContent: c.title || c.label }), el("span", { textContent: c.sub || "" }), txt);
+      li.append(btn, info);
+      if (showText) { const s = el("button", { className: "show", type: "button", textContent: "Mostra il testo" }); s.onclick = () => { txt.hidden = !txt.hidden; s.textContent = txt.hidden ? "Mostra il testo" : "Nascondi"; }; li.append(s); }
+      btn.onclick = async () => {
+        if (li.classList.contains("playing")) { P().stop(); return; }
+        ul.querySelectorAll(".clip").forEach(x => x.classList.remove("playing")); li.classList.add("playing");
+        try { await P().finished(await P().speak(c.text, c.voice)); } catch (err) { voiceError(ul.parentElement, err); }
+        li.classList.remove("playing");
+      };
+      ul.append(li);
+    });
+  }
+
+  // ---- Step 2: question ----
+  let qTries = 0, qOk = false;
+  // Short tokens ("no", "9", "11") must be whole words, so "non lo so" doesn't count as "no".
+  const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const hit = (text, t) => t.length <= 3 ? new RegExp("(^|[^\\p{L}\\d])" + esc(t.toLowerCase()) + "($|[^\\p{L}\\d])", "u").test(text.toLowerCase()) : text.toLowerCase().includes(t.toLowerCase());
+  const DONT_KNOW = /\b(non (lo )?so|boh|non ho capito|i don'?t know|no idea)\b/i;
+  const hasAll = (text, groups) => !DONT_KNOW.test(text) && groups.every(g => g.some(t => hit(text, t)));
+  function checkQuestion() {
+    const a = $("qAnswer").value.trim(); if (!a) { $("qAnswer").focus(); return; }
+    qTries++; qOk = hasAll(a, D.question.accept);
+    const fb = $("qFeedback"); fb.hidden = false; fb.className = "feedback " + (qOk ? "ok" : "no");
+    fb.textContent = qOk ? D.question.right : (D.question.hints[qTries - 1] || "Va bene così: la impariamo insieme nei prossimi passi.");
+    $("qNext").hidden = !(qOk || qTries > D.question.hints.length);
+  }
+  $("qCheck").onclick = checkQuestion;
+  $("qReplay").onclick = () => go("listen");
+  $("qNext").onclick = () => go(qOk ? "ask" : "cloze");
+  $("askNo").onclick = () => go(qTries === 1 ? "cloze" : "cloze");
+  $("askYes").onclick = () => openQuick();
+  $("knowBtn").onclick = () => openQuick();
+
+  // Web Speech for answering out loud (Italian or English), where the browser has it
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  document.querySelectorAll(".mic").forEach(m => {
+    if (!SR) return; m.hidden = false;
+    let rec = null;
+    m.onclick = () => {
+      if (rec) { rec.stop(); return; }
+      rec = new SR(); rec.lang = "it-IT"; rec.interimResults = false;
+      const ta = $(m.dataset.mic); m.classList.add("on");
+      rec.onresult = e => { ta.value = (ta.value + " " + [...e.results].map(r => r[0].transcript).join(" ")).trim(); };
+      rec.onend = () => { m.classList.remove("on"); rec = null; };
+      try { rec.start(); } catch { m.classList.remove("on"); rec = null; }
+    };
+  });
+
+  // ---- Quick check: meaning first, then read a sentence (scored by Azure) ----
+  function openQuick() {
+    go("quick"); $("kMeaning").value = ""; $("kFeedback").hidden = true; $("kRead").hidden = true; $("kReadFb").hidden = true;
+  }
+  $("kCheck").onclick = () => {
+    const a = $("kMeaning").value.trim(); if (!a) return;
+    const ok = new RegExp(D.known.meaning, "i").test(a), fb = $("kFeedback");
+    fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no");
+    fb.textContent = ok ? "Giusto: " + D.known.meaningAnswer + "." : "Non proprio: vuol dire «" + D.known.meaningAnswer + "». Facciamo il percorso completo.";
+    if (ok) { $("kRead").hidden = false; paintSentence($("kSentence"), D.known.sentence); $("kSentenceIt").textContent = D.known.sentenceIt; }
+    else setTimeout(() => go("explain"), 2200);
+  };
+  $("kSpeak").onclick = async () => {
+    const btn = $("kSpeak"), fb = $("kReadFb"); btn.disabled = true; btn.textContent = "Preparo il microfono…";
+    try {
+      const r = await P().assess(D.known.sentence, { onListening: () => btn.textContent = "Ti ascolto… leggi ora" });
+      const al = align(D.known.sentence, r.words); paintSentence($("kSentence"), D.known.sentence, al);
+      const target = al.find(w => w && isKey(w.word));
+      fb.hidden = false;
+      if (target && target.score >= 60 && r.pron >= 60 && r.completeness >= 70) { fb.className = "feedback ok"; fb.textContent = `Ti ho capito bene: ${r.pron}/100.`; finishCheck(true); }
+      else { fb.className = "feedback no"; fb.textContent = !target || target.score < 60 ? `«${D.label}» non era chiara. Riprova: si dice ${D.say}.` : `«${D.label}» va bene, ma la frase è al ${r.pron}/100. Riprova più lentamente.`; }
+    } catch (err) { fb.hidden = false; fb.className = "feedback no"; fb.textContent = "Il controllo della pronuncia non risponde. Usa «l'ho letta» o riprova."; }
+    btn.disabled = false; btn.textContent = "🎙 Leggi di nuovo";
+  };
+  $("kSelf").onclick = () => finishCheck(true);
+  function finishCheck(ok) { save({ known: true, done: Date.now() }); setTimeout(() => go("done"), ok ? 1200 : 0); }
+
+  // ---- Step 3: cloze ----
+  function renderCloze() {
+    $("clozeIntro").textContent = D.cloze.intro;
+    const box = $("clozes"); box.innerHTML = "";
+    D.cloze.items.forEach(c => {
+      const item = el("div", { className: "rv-item" });
+      const p = el("p", { className: "cloze" }); const [a, b] = c.text.split("___");
+      const blank = el("span", { className: "blank", textContent: "?" }); p.append(a, blank, b || "");
+      const opts = el("div", { className: "opts" }), fb = el("p", { className: "feedback", hidden: true });
+      c.options.forEach(o => { const btn = el("button", { type: "button", textContent: o }); btn.onclick = () => {
+        const ok = o === c.answer; btn.className = ok ? "right" : "wrong"; fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no");
+        fb.textContent = ok ? c.why : "No, riprova. " + (o === D.word ? "" : "");
+        if (ok) { blank.textContent = o; opts.querySelectorAll("button").forEach(x => x.disabled = true); }
+      }; opts.append(btn); });
+      item.append(p, opts, fb); box.append(item);
+    });
+  }
+
+  // ---- Step 4: explanation ----
+  function renderExplain() {
+    $("eWord").textContent = D.label; $("eIpa").textContent = D.ipa + " · «" + D.say.toLowerCase() + "»"; $("eShort").textContent = D.explain.short;
+    $("eFacts").innerHTML = D.explain.facts.map(f => `<dt>${f.label}</dt><dd>${f.text}</dd>`).join("");
+    $("eListen").onclick = async () => { try { await P().speak(D.label); } catch (err) { voiceError($("eFacts").parentElement, err); } };
+  }
+
+  // ---- Step 5: voices ----
+  function renderVoices() {
+    $("voicesIntro").textContent = D.voices.intro;
+    const g = $("voiceGrid"); g.innerHTML = "";
+    D.voices.lines.forEach(v => { const b = el("button", { className: "voice", type: "button" }, el("b", { textContent: "▶ " + v.label }), el("span", { textContent: v.sub }));
+      b.onclick = async () => { g.querySelectorAll(".voice").forEach(x => x.classList.remove("playing")); b.classList.add("playing");
+        try { await P().finished(await P().speak(v.text, v.voice)); } catch (err) { voiceError(g.parentElement, err); } b.classList.remove("playing"); };
+      g.append(b); });
+  }
+
+  // ---- Step 6: read sentences, scored word by word ----
+  const norm = w => w.toLowerCase().replace(/[^a-z']/g, "");
+  const isKey = w => norm(w).startsWith(norm(D.word));
+  function align(text, words) {
+    const list = (words || []).filter(w => w.error !== "Insertion"); let j = 0;
+    return text.split(" ").map(tok => {
+      const t = norm(tok); let got = ""; const used = [];
+      while (j < list.length && got.length < t.length) { got += norm(list[j].word); used.push(list[j]); j++; }
+      if (!used.length) return null;
+      return { score: Math.min(...used.map(u => u.score)), error: used.find(u => u.error === "Omission")?.error || "None", word: tok.replace(/[^\w'-]/g, ""), phonemes: used.flatMap(u => u.phonemes) };
+    });
+  }
+  function paintSentence(box, text, aligned = []) {
+    box.innerHTML = "";
+    text.split(" ").forEach((tok, i) => {
+      const sp = el("span", { textContent: tok }); if (isKey(tok)) sp.classList.add("key");
+      const w = aligned[i]; if (w) sp.classList.add(w.error === "Omission" || w.score < 60 ? "bad" : w.score < 80 ? "mid" : "good");
+      box.append(sp);
+    });
+  }
+  let tense = "past", reading = false;
+  function renderRead() { paintSentence($("rSentence"), D.read[tense].en); $("rItalian").textContent = D.read[tense].it; }
+  document.querySelectorAll("[data-tense]").forEach(b => b.onclick = () => {
+    tense = b.dataset.tense; document.querySelectorAll("[data-tense]").forEach(x => x.setAttribute("aria-selected", x === b));
+    $("rResult").hidden = true; $("rError").hidden = true; renderRead();
+  });
+  function pronError(box, err) {
+    box.hidden = false;
+    box.textContent = err?.code === "login" ? "Per il voto della pronuncia devi essere entrato con il tuo account."
+      : err?.code === "mic" ? "Il browser non mi lascia usare il microfono. Permettilo dall'icona accanto all'indirizzo e riprova."
+      : err?.code === "nomatch" ? "Non ho sentito niente. Avvicinati al microfono e leggi dopo aver premuto."
+      : /429/.test(err?.message) ? "Per oggi hai usato tutte le prove di pronuncia. Riprendi domani!" : "Il controllo della pronuncia non risponde. Riprova tra poco.";
+  }
+  $("rListen").onclick = async () => { $("rError").hidden = true; try { await P().speak(D.read[tense].en); } catch (err) { pronError($("rError"), err); } };
+  $("rSpeak").onclick = async () => {
+    if (reading) return; const btn = $("rSpeak"), text = D.read[tense].en;
+    reading = true; btn.disabled = true; btn.textContent = "Preparo il microfono…"; $("rError").hidden = true; $("rResult").hidden = true;
+    try {
+      const r = await P().assess(text, { onListening: () => { btn.textContent = "Ti ascolto… leggi ora"; } });
+      const al = align(text, r.words); paintSentence($("rSentence"), text, al);
+      const n = r.pron;
+      $("rVerdict").textContent = n >= 85 ? "Ottimo, si capisce benissimo" : n >= 70 ? "Ti ho capito bene" : n >= 50 ? "Ci sei quasi" : "Riproviamo con calma";
+      $("rScore").innerHTML = `${n}<small>/100</small>`;
+      const weak = al.filter(Boolean).filter(w => w.error === "Omission" || w.score < 80).sort((a, b) => a.score - b.score).slice(0, 3);
+      $("rTips").innerHTML = ""; (weak.length ? weak.map(w => P().tipFor(w)) : ["Tutte le parole chiare. Prova un altro tempo verbale."]).forEach(t => $("rTips").append(el("li", { textContent: t })));
+      $("rDetail").textContent = `Precisione ${r.accuracy} · Scorrevolezza ${r.fluency} · Completezza ${r.completeness}` + (r.prosody != null ? ` · Intonazione ${r.prosody}` : "");
+      $("rResult").hidden = false;
+      const best = load().speak || {}; save({ speak: { ...best, [tense]: Math.max(best[tense] || 0, n) } });
+    } catch (err) { pronError($("rError"), err); }
+    reading = false; btn.disabled = false; btn.textContent = "🎙 Leggi di nuovo";
+  };
+
+  // ---- Step 7: Alex talks (lip-sync from Azure's word timings), the other voice in a bubble ----
+  const AT = { legB: [-14, -5], legA: [10, -5], torso: [0, 12], head: [-20, -245], armB: [-20, -200], armA: [10, -195] };
+  const MOUTH_AT = { happy: [345, 290], panic: [329, 292], shock: [334, 297], sad: [301, 305] };
+  const PX = 290, PY = 352, SCALE = .6;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const PP = Object.fromEntries(["puppet", "legA", "legB", "armA", "armB", "torso", "head"].map(k => [k, $(k)]));
+  const faces = [...document.querySelectorAll(".face")], mouths = [...document.querySelectorAll(".mouth")];
+  const tr = (n, s) => n.setAttribute("transform", s);
+  (function curtains() {
+    const ns = "http://www.w3.org/2000/svg", g = $("curtains");
+    const mk = (tag, a) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); g.append(e); };
+    mk("rect", { x: 0, y: 0, width: 1024, height: 576, fill: "#c9a46b" });
+    for (let x = 0; x < 1024; x += 64) mk("rect", { x, y: 0, width: 32, height: 470, fill: "#bf9a60", opacity: .5 });
+    mk("rect", { x: 0, y: 470, width: 1024, height: 106, fill: "#6b4526" });
+    mk("rect", { x: 0, y: 470, width: 1024, height: 10, fill: "#4a2e17" });
+    [[0, 1], [1024, -1]].forEach(([x0, dir]) => { for (let i = 0; i < 4; i++) mk("path", { d: `M${x0 + dir * i * 34} 0 q${dir * 30} 240 ${dir * 6} 576 l${dir * 34} 0 q${dir * 10} -330 ${dir * -6} -576z`, fill: i % 2 ? "#8e2020" : "#a52a2a" }); });
+    mk("path", { d: "M0 0 H1024 V58 Q512 100 0 58 Z", fill: "#8e2020" });
+    mk("path", { d: "M0 54 Q512 96 1024 54", fill: "none", stroke: "#e0b040", "stroke-width": 6 });
+  })();
+  let scene = { running: false, t0: 0, words: [], expr: "happy", raf: 0, stop: false };
+  function drawPuppet(t) {
+    const talk = scene.words.some(w => t >= w.start && t <= w.end);
+    const idle = reduce ? 0 : Math.sin(t * 2.2);
+    tr(PP.puppet, `translate(${PX} ${PY + idle * 2}) scale(${SCALE})`);
+    const place = (k, rot, dx = 0, dy = 0) => tr(PP[k], `translate(${AT[k][0] + dx} ${AT[k][1] + dy}) rotate(${rot.toFixed(1)})`);
+    place("legA", 0); place("legB", 0); place("torso", idle * .6);
+    place("armA", talk && !reduce ? Math.sin(t * 5) * 10 - 8 : -4); place("armB", talk && !reduce ? -Math.sin(t * 4) * 6 : 3);
+    place("head", (talk && !reduce ? Math.sin(t * 7) * 3 : 0) + (scene.expr === "sad" ? 10 : 0) + idle);
+    faces.forEach(f => f.setAttribute("visibility", f.dataset.expr === scene.expr ? "visible" : "hidden"));
+    const w = scene.words.find(w => t >= w.start && t <= w.end);
+    let shape = "closed";
+    if (w) { const p = (t - w.start) / Math.max(.08, w.end - w.start); const l = .35 + .65 * Math.abs(Math.sin(p * Math.PI * Math.max(1, Math.round((w.end - w.start) / .12)))); shape = /^[^aeiu]*o/i.test(w.text) && p < .6 ? "o" : l < .45 ? "half" : "open"; }
+    const [mx, my] = MOUTH_AT[scene.expr] || MOUTH_AT.happy;
+    mouths.forEach(m => { m.setAttribute("x", mx - 296); m.setAttribute("y", my - 372); m.setAttribute("visibility", shape !== "closed" && m.dataset.shape === shape ? "visible" : "hidden"); });
+  }
+  function frame() {
+    const t = scene.player && !scene.player.paused ? scene.player.currentTime : (performance.now() - scene.t0) / 1000;
+    drawPuppet(t);
+    if (scene.running) scene.raf = requestAnimationFrame(frame);
+  }
+  function stopScene() { scene.stop = true; scene.running = false; cancelAnimationFrame(scene.raf); scene.words = []; $("otherBubble")?.classList.remove("on"); if (PP.puppet) drawPuppet(0); }
+  async function playScene() {
+    stopScene(); scene.stop = false; $("sceneStart").hidden = true; $("ipaTag").classList.remove("on");
+    const caps = $("captions"); scene.running = true; scene.t0 = performance.now(); scene.raf = requestAnimationFrame(frame);
+    try {
+      for (const line of D.scene.lines) {
+        if (scene.stop) break;
+        caps.innerHTML = ""; line.text.split(" ").forEach(w => { const s = el("span", { textContent: w }); if (isKey(w)) s.classList.add("key"); caps.append(s); });
+        $("captionIt").textContent = line.it;
+        const alex = line.who === "Alex";
+        $("otherBubble").classList.toggle("on", !alex); $("otherWho").textContent = line.who; $("otherText").textContent = line.text;
+        if (alex) {
+          scene.expr = line.expr || "happy";
+          const { player, words } = await P().speakTimed(line.text, line.voice);
+          scene.player = player; scene.words = words;
+          if (line.text.toLowerCase().includes(D.word)) $("ipaTag").classList.add("on");
+          const spans = [...caps.children];
+          const tick = () => { if (scene.stop || player.paused) return; const t = player.currentTime; spans.forEach((s, i) => { const w = words[i]; s.classList.toggle("said", !!w && t > w.end); s.classList.toggle("now", !!w && t >= w.start && t <= w.end); }); requestAnimationFrame(tick); };
+          tick();
+          await P().finished(player);
+        } else {
+          scene.words = []; scene.player = null;
+          [...caps.children].forEach(s => s.classList.add("said"));
+          await P().finished(await P().speak(line.text, line.voice));
+        }
+        if (!scene.stop) await new Promise(r => setTimeout(r, 300));
+      }
+    } catch (err) { voiceError($("captions").parentElement, err); }
+    scene.running = false; scene.words = []; drawPuppet(0); $("otherBubble").classList.remove("on");
+  }
+  $("sceneStart").onclick = playScene; $("sceneReplay").onclick = playScene;
+
+  // ---- Step 9 + reviews (same as gate, content from the word's file) ----
+  const fmt = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numeric", month: "short" });
+  function schedule(st) {
+    const days = st.known ? [7, 30, 90, 180] : [1, 3, 7, 21], sets = st.known ? ["7", "21", "3", "1"] : ["1", "3", "7", "21"];
+    const start = st.done || Date.now();
+    return days.map((d, i) => ({ day: d, set: sets[i], at: start + d * 864e5, did: !!st.reviews?.[d] }));
+  }
+  function renderPlan() {
+    if (!load().done) save({ done: Date.now() });
+    const plan = $("plan"); plan.innerHTML = "";
+    schedule(load()).forEach(s => {
+      const due = !s.did && Date.now() >= s.at;
+      const b = el("button", { type: "button", className: s.did ? "did" : due ? "due" : "" });
+      b.innerHTML = `<b>+${s.day}</b><span>${s.day === 1 ? "giorno" : "giorni"} · ${fmt.format(new Date(s.at))}</span><em>${s.did ? "✓ fatto" : due ? "da fare oggi" : "prova ora"}</em>`;
+      b.onclick = () => openReview(s); plan.append(b);
+    });
+  }
+  function updateBanner() {
+    if (!D) return; const st = load();
+    const due = st.done ? schedule(st).find(s => !s.did && Date.now() >= s.at) : null;
+    $("dueBanner").hidden = !due || current === "review";
+    if (due) { $("dueTitle").textContent = `Oggi hai un ripasso di ${D.label}`; $("dueSub").textContent = `Ripasso del ${due.day}° giorno · circa 3 minuti`; $("dueGo").onclick = () => openReview(due); }
+  }
+  let rvSlot = null;
+  function openReview(slot) {
+    rvSlot = slot; go("review"); $("rvItems").innerHTML = "";
+    $("rvEyebrow").textContent = `Ripasso · ${slot.day}° giorno` + (Date.now() < slot.at ? " · anteprima" : "");
+    const set = D.reviews[slot.set]; $("rvTitle").textContent = set.title; $("rvIntro").textContent = set.intro;
+    set.items.forEach(item => $("rvItems").append(({ listen: rvListen, dialogue: rvListen, read: rvRead, pairs: rvPairs })[item.type](item)));
+  }
+  $("rvBack").onclick = () => go("done");
+  $("rvDone").onclick = () => { if (rvSlot && Date.now() >= rvSlot.at) save({ reviews: { ...(load().reviews || {}), [rvSlot.day]: Date.now() } }); go("done"); };
+  function rvListen(item) {
+    const lines = item.lines || [{ voice: item.voice, text: item.text, it: item.it }];
+    const box = el("div", { className: "rv-item" });
+    const play = el("button", { className: "play gold", type: "button", textContent: item.lines ? "Ascolta il dialogo" : "Ascolta l'annuncio" });
+    const textBox = el("div", { className: "rv-text", hidden: true });
+    const rows = lines.map(l => { const p = el("p"); if (l.who) p.append(el("span", { className: "who", textContent: l.who + " · " })); p.append(el("em", { textContent: l.text }), el("br"), el("span", { className: "muted", textContent: l.it })); return p; });
+    textBox.append(...rows);
+    const show = el("button", { type: "button", className: "show", textContent: "Mostra il testo" });
+    show.onclick = () => { textBox.hidden = !textBox.hidden; show.textContent = textBox.hidden ? "Mostra il testo" : "Nascondi il testo"; };
+    let playing = false;
+    play.onclick = async () => {
+      if (playing) { playing = false; P().stop(); return; }
+      playing = true; play.classList.add("playing");
+      try { for (let i = 0; i < lines.length && playing; i++) { rows.forEach((r, j) => r.classList.toggle("now", j === i)); await P().finished(await P().speak(lines[i].text, lines[i].voice)); if (playing && i < lines.length - 1) await new Promise(r => setTimeout(r, 350)); } }
+      catch (err) { voiceError(box, err); }
+      playing = false; play.classList.remove("playing"); rows.forEach(r => r.classList.remove("now"));
+    };
+    const ta = el("textarea", { placeholder: "Rispondi in italiano o in inglese" });
+    const check = el("button", { type: "button", className: "primary", textContent: "Controlla" });
+    const fb = el("p", { className: "feedback", hidden: true }); let tries = 0;
+    check.onclick = () => {
+      const a = ta.value.trim(); if (!a) { ta.focus(); return; } tries++;
+      const ok = hasAll(a, item.accept); fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no");
+      fb.textContent = ok ? "Esatto. " + item.answer : tries < 2 ? "Non ancora: riascolta e riprova." : "Ecco la risposta: " + item.answer;
+      if (ok || tries >= 2) { textBox.hidden = false; show.textContent = "Nascondi il testo"; }
+    };
+    box.append(el("div", { className: "row" }, play, show), textBox, el("p", { innerHTML: `<b>${item.question}</b>` }), ta, el("div", { className: "row" }, check), fb);
+    return box;
+  }
+  function rvRead(item) {
+    const box = el("div", { className: "rv-item" }), sentence = el("p", { className: "sentence" });
+    paintSentence(sentence, item.text);
+    const listen = el("button", { type: "button", className: "play", textContent: "Ascolta" });
+    listen.onclick = async () => { try { await P().speak(item.text); } catch (err) { voiceError(box, err); } };
+    const speak = el("button", { type: "button", className: "gold", textContent: "🎙 Leggi ad alta voce" });
+    const res = el("div", { className: "score", hidden: true });
+    speak.onclick = async () => {
+      speak.disabled = true; speak.textContent = "Preparo il microfono…"; res.hidden = true;
+      try {
+        const r = await P().assess(item.text, { onListening: () => { speak.textContent = "Ti ascolto… leggi ora"; } });
+        const al = align(item.text, r.words); paintSentence(sentence, item.text, al);
+        const weak = al.filter(w => w && (w.error === "Omission" || w.score < 80)).sort((a, b) => a.score - b.score).slice(0, 2);
+        res.innerHTML = "";
+        res.append(el("div", { className: "row", style: "justify-content:space-between;align-items:baseline" }, el("b", { textContent: r.pron >= 85 ? "Ottimo" : r.pron >= 70 ? "Ti ho capito bene" : r.pron >= 50 ? "Ci sei quasi" : "Riproviamo con calma" }), el("span", { className: "big", innerHTML: `${r.pron}<small>/100</small>` })));
+        const ul = el("ul", { className: "tips" }); (weak.length ? weak.map(w => P().tipFor(w)) : ["Tutte le parole chiare."]).forEach(t => ul.append(el("li", { textContent: t })));
+        res.append(ul); res.hidden = false;
+      } catch (err) { const f = el("p", { className: "feedback no" }); pronError(f, err); res.replaceChildren(f); res.hidden = false; }
+      speak.disabled = false; speak.textContent = "🎙 Leggi di nuovo";
+    };
+    box.append(el("h3", { textContent: "Leggi ad alta voce" }), sentence, el("p", { className: "muted", textContent: item.it }), el("div", { className: "row" }, listen, speak), res);
+    return box;
+  }
+  function rvPairs(item) {
+    const box = el("div", { className: "rv-item" }), status = el("p", { className: "muted" });
+    const play = el("button", { type: "button", className: "play gold", textContent: "Ascolta la parola" });
+    const opts = el("div", { className: "opts" }), fb = el("p", { className: "feedback", hidden: true });
+    let round = 0, right = 0, word = null, voice = null, answered = false;
+    const pick = a => a[Math.floor(Math.random() * a.length)];
+    const next = () => { round++; answered = false; word = Math.random() < .5 ? item.target : pick(item.options.filter(o => o !== item.target)); voice = pick(item.voices); status.textContent = `Parola ${round} di ${item.rounds}`; fb.hidden = true; opts.querySelectorAll("button").forEach(b => { b.className = ""; b.disabled = false; }); };
+    play.onclick = async () => { try { await P().speak(word, voice); } catch (err) { voiceError(box, err); } };
+    item.options.forEach(o => { const b = el("button", { type: "button", textContent: o }); b.onclick = () => {
+      if (answered) return; answered = true; const ok = o === word; if (ok) right++;
+      b.className = ok ? "right" : "wrong"; opts.querySelectorAll("button").forEach(x => { x.disabled = true; if (x.textContent === word) x.className = "right"; });
+      fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no"); fb.textContent = (ok ? "Sì, era «" : "Era «") + word + "». ";
+      if (round < item.rounds) { const n = el("button", { type: "button", className: "primary", textContent: "Prossima" }); n.onclick = next; fb.append(n); }
+      else fb.append(`Risultato: ${right} su ${item.rounds}. ` + item.answer);
+    }; opts.append(b); });
+    next(); box.append(el("h3", { textContent: "Quale parola senti?" }), status, el("div", { className: "row" }, play), opts, fb);
+    return box;
+  }
+  $("restart").onclick = () => { qTries = 0; qOk = false; $("qAnswer").value = ""; $("qFeedback").hidden = true; $("qNext").hidden = true; go("listen"); };
+
+  // ---- start ----
+  fetch("data/words/" + encodeURIComponent(id) + ".json").then(r => { if (!r.ok) throw 0; return r.json(); }).then(d => {
+    D = d; $("loading").hidden = true;
+    document.title = "Lezione · " + D.label; $("brandWord").textContent = D.label;
+    $("listenIntro").textContent = D.listen.intro; clipList($("listenClips"), D.listen.clips, { showText: false });
+    $("qText").textContent = D.question.text; $("qIt").textContent = "(" + D.question.it + ")";
+    $("askWord").textContent = "«" + D.label + "»"; $("kWord").textContent = D.label;
+    renderCloze(); renderExplain(); renderVoices(); renderRead();
+    $("sTitle").textContent = D.scene.title; $("sIntro").textContent = D.scene.intro; $("ipaTag").textContent = `${D.label} · ${D.ipa} · «${D.say.toLowerCase()}»`;
+    $("realIntro").textContent = D.real.intro; clipList($("realClips"), D.real.clips);
+    $("dTitle").textContent = `Hai imparato «${D.label}»`;
+    drawPuppet(0);
+    const st = load();
+    go("listen");
+    if (location.hash === "#ripasso" && st.done) { const due = schedule(st).find(x => !x.did && Date.now() >= x.at); if (due) openReview(due); }
+    document.addEventListener("account:ready", () => { updateBanner(); $("loginNote").hidden = true; });
+    setTimeout(() => { if (!window.Pronuncia?.available()) $("loginNote").hidden = false; }, 2500);
+  }).catch(() => { $("loading").hidden = true; $("notFound").hidden = false; });
+})();
+</script>
+<script type="module" src="account.js"></script>
+<script type="module" src="pronuncia.js"></script>
+</body>
+</html>

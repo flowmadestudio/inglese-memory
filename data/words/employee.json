@@ -1,0 +1,123 @@
+{
+  "word": "employee",
+  "label": "employee",
+  "ipa": "/ɪmˈplɔɪiː/",
+  "say": "im-PLÒI-ii",
+  "rank": 624,
+  "meaning": "dipendente, chi lavora per un'azienda",
+  "listen": {
+    "intro": "Tre voci diverse. In tutte c'è la stessa parola: non cercare di capire tutto, ascolta come suona.",
+    "clips": [
+      { "voice": "en-US-JennyNeural", "label": "Voce 1", "text": "The company has two hundred employees, and most of them work from home.", "it": "L'azienda ha duecento dipendenti, e la maggior parte lavora da casa." },
+      { "voice": "en-GB-RyanNeural", "label": "Voce 2", "text": "Sorry, this area is for employees only.", "it": "Mi dispiace, quest'area è riservata ai dipendenti." },
+      { "voice": "en-IN-NeerjaNeural", "label": "Voce 3", "text": "Every new employee gets a laptop on the first day.", "it": "Ogni nuovo dipendente riceve un portatile il primo giorno." }
+    ]
+  },
+  "question": {
+    "text": "In the second one: who is allowed into that area?",
+    "it": "Nella seconda voce: chi può entrare in quell'area?",
+    "accept": [["dipend", "lavor", "staff", "personale", "impiegat", "work", "employ"]],
+    "right": "Esatto: solo chi ci lavora, i dipendenti. «For employees only» lo leggerai su tante porte.",
+    "hints": ["Riascolta la Voce 2: finisce con «…only».", "«Only» = solo. Chi è il «solo» che può entrare? Chi lavora lì."]
+  },
+  "known": {
+    "meaning": "(dipendent|impiegat|lavorator|personale|staff|worker|chi lavora|salariat)",
+    "meaningAnswer": "dipendente, chi lavora per un'azienda",
+    "sentence": "Our company gives every employee a free lunch on Fridays.",
+    "sentenceIt": "La nostra azienda offre a ogni dipendente il pranzo gratis il venerdì."
+  },
+  "cloze": {
+    "intro": "Completa con la parola giusta. Attenzione alla differenza tra -ee e -er.",
+    "items": [
+      { "text": "I'm an ___ of a big bank: I work there from nine to five.", "options": ["employee", "employer", "employment"], "answer": "employee", "why": "Chi lavora per la banca è il dipendente: employee." },
+      { "text": "My ___ pays me at the end of every month.", "options": ["employee", "employer", "employment"], "answer": "employer", "why": "Trappola! Chi ti paga è il datore di lavoro: employer, con -er." },
+      { "text": "She's looking for ___ after university.", "options": ["employee", "employer", "employment"], "answer": "employment", "why": "Employment = lavoro, occupazione: è la cosa che cerca, non una persona." }
+    ]
+  },
+  "explain": {
+    "short": "employee = dipendente, chi lavora per qualcuno. Si dice «im-PLÒI-ii». Attenzione: employer (-er) è invece il datore di lavoro.",
+    "facts": [
+      { "label": "Significa", "text": "<b>Dipendente</b>: chi lavora per un'azienda o per qualcuno e riceve uno stipendio." },
+      { "label": "Si dice", "text": "/ɪmˈplɔɪiː/, <span class=\"say\">«im-PLÒI-ii»</span>. In America si sente spesso anche «em-ploi-Ì», con l'accento alla fine: vanno bene tutti e due." },
+      { "label": "Trappola", "text": "<b>-ee</b> è chi <i>riceve</i> l'azione, <b>-er</b> chi la <i>fa</i>. Employ<b>ee</b> = chi viene assunto (il dipendente). Employ<b>er</b> = chi assume (il datore di lavoro). Sbagliarle cambia tutto!" },
+      { "label": "Curiosità", "text": "Viene dal francese <i>employé</i> (impiegato). La stessa regola -ee/-er la ritrovi in <i>trainee/trainer</i> (tirocinante/istruttore) e <i>interviewee/interviewer</i> (chi fa il colloquio/chi lo conduce)." },
+      { "label": "Esempi", "text": "<i>employees only</i> (riservato ai dipendenti) · <i>a new employee</i> (un nuovo dipendente) · <i>200 employees</i> (200 dipendenti)." }
+    ]
+  },
+  "voices": {
+    "intro": "La stessa parola in voci e accenti diversi: senti come si sposta l'accento.",
+    "lines": [
+      { "voice": "en-GB-RyanNeural", "label": "Inglese", "sub": "Alex", "text": "employee. Employees only." },
+      { "voice": "en-US-GuyNeural", "label": "Americana", "sub": "accento alla fine", "text": "employee. Employees only." },
+      { "voice": "en-AU-NatashaNeural", "label": "Australiana", "sub": "vocali allungate", "text": "employee. Employees only." },
+      { "voice": "en-IN-NeerjaNeural", "label": "Indiana", "sub": "ritmo diverso", "text": "employee. Employees only." }
+    ]
+  },
+  "read": {
+    "past": { "en": "Last year the company hired fifty new employees.", "it": "L'anno scorso l'azienda ha assunto cinquanta nuovi dipendenti." },
+    "present": { "en": "Every employee has a badge with their photo.", "it": "Ogni dipendente ha un badge con la sua foto." },
+    "future": { "en": "From Monday, employees will work four days a week.", "it": "Da lunedì i dipendenti lavoreranno quattro giorni a settimana." }
+  },
+  "scene": {
+    "title": "Il primo giorno al bar",
+    "intro": "Alex ha trovato lavoro in un bar. Il titolare gli dà il benvenuto.",
+    "lines": [
+      { "who": "Titolare", "voice": "en-US-GuyNeural", "text": "Welcome, Alex! You're our newest employee.", "it": "Benvenuto, Alex! Sei il nostro nuovo dipendente." },
+      { "who": "Alex", "voice": "en-GB-RyanNeural", "expr": "happy", "text": "Brilliant! So I'm the employer now?", "it": "Fantastico! Quindi adesso sono il datore di lavoro?" },
+      { "who": "Titolare", "voice": "en-US-GuyNeural", "text": "No. I'm the employer. I pay you. You're the employee.", "it": "No. Il datore di lavoro sono io. Io pago te. Tu sei il dipendente." },
+      { "who": "Alex", "voice": "en-GB-RyanNeural", "expr": "shock", "text": "Right. You pay. I'm the employee.", "it": "Giusto. Tu paghi. Io sono il dipendente." }
+    ]
+  },
+  "real": {
+    "intro": "Quattro situazioni in cui la sentirai davvero. Prima ascolta, poi se vuoi leggi.",
+    "clips": [
+      { "title": "Annuncio in un negozio", "sub": "Altoparlante", "voice": "en-GB-SoniaNeural", "text": "Attention, please: this door is for employees only. Customers, please use the main entrance." },
+      { "title": "Colloquio di lavoro", "sub": "Selezionatrice", "voice": "en-US-JennyNeural", "text": "How many employees did you manage in your last job?" },
+      { "title": "Notiziario", "sub": "Radio", "voice": "en-GB-RyanNeural", "text": "The factory will close next year, and three hundred employees will lose their jobs." },
+      { "title": "Una collega", "sub": "Il primo giorno", "voice": "en-AU-NatashaNeural", "text": "As an employee, you get twenty days of holiday a year." }
+    ]
+  },
+  "reviews": {
+    "1": {
+      "title": "Al supermercato",
+      "intro": "Un annuncio dall'altoparlante. Ascoltalo senza leggere.",
+      "items": [
+        { "type": "listen", "voice": "en-GB-SoniaNeural", "text": "Could an employee from the bakery please come to checkout number four. Thank you.", "it": "Un dipendente del reparto panetteria può venire alla cassa numero quattro? Grazie.", "question": "Chi chiamano, e dove deve andare?", "accept": [["forn", "pane", "panett", "bakery", "panific"], ["4", "quattro", "four"]], "answer": "Un dipendente della panetteria (bakery), alla cassa (checkout) numero 4." },
+        { "type": "read", "text": "Excuse me, are you an employee here?", "it": "Scusi, lei lavora qui?" }
+      ]
+    },
+    "3": {
+      "title": "Il colloquio",
+      "intro": "Alex fa un colloquio di lavoro. Ascolta il dialogo.",
+      "items": [
+        { "type": "dialogue", "lines": [
+          { "who": "Selezionatrice", "voice": "en-US-JennyNeural", "text": "So, how many employees are in your team?", "it": "Allora, quanti dipendenti ci sono nel suo team?" },
+          { "who": "Alex", "voice": "en-GB-RyanNeural", "text": "Twelve. Well, eleven. One of them is my cat.", "it": "Dodici. Beh, undici. Uno è il mio gatto." },
+          { "who": "Selezionatrice", "voice": "en-US-JennyNeural", "text": "Your cat is an employee?", "it": "Il suo gatto è un dipendente?" },
+          { "who": "Alex", "voice": "en-GB-RyanNeural", "text": "He's very good at meetings.", "it": "È bravissimo nelle riunioni." }
+        ], "question": "Quante persone ci sono davvero nel team di Alex?", "accept": [["11", "undici", "eleven"]], "answer": "Undici: il dodicesimo «dipendente» è il suo gatto. E nota «good at» = bravo in: è una coppia obbligata!" },
+        { "type": "read", "text": "I was an employee at a hotel for two years.", "it": "Sono stato dipendente in un hotel per due anni." }
+      ]
+    },
+    "7": {
+      "title": "Employer o employee?",
+      "intro": "Un'amica irlandese chiede ad Alex del suo lavoro.",
+      "items": [
+        { "type": "dialogue", "lines": [
+          { "who": "Emily", "voice": "en-IE-EmilyNeural", "text": "Are you happy with your employer?", "it": "Sei contento del tuo datore di lavoro?" },
+          { "who": "Alex", "voice": "en-GB-RyanNeural", "text": "My employer? I don't have one. I work for myself.", "it": "Il mio datore di lavoro? Non ce l'ho. Lavoro per conto mio." },
+          { "who": "Emily", "voice": "en-IE-EmilyNeural", "text": "So you're your own employee and your own employer!", "it": "Quindi sei il dipendente e il datore di lavoro di te stesso!" }
+        ], "question": "Che lavoro fa Alex? E chi è l'employer?", "accept": [["se stess", "myself", "proprio", "conto suo", "conto mio", "autonom", "freelance", "da solo"]], "answer": "Lavora per conto suo («I work for myself»). L'employer è il datore di lavoro, chi ti paga: per Alex, è lui stesso." },
+        { "type": "read", "text": "The new law will protect employees who work at night.", "it": "La nuova legge proteggerà i dipendenti che lavorano di notte." }
+      ]
+    },
+    "21": {
+      "title": "Orecchio fino",
+      "intro": "Quattro parole della stessa famiglia, dette da voci diverse. Quale senti?",
+      "items": [
+        { "type": "pairs", "target": "employee", "options": ["employee", "employer", "employ", "employment"], "voices": ["en-GB-RyanNeural", "en-US-JennyNeural", "en-AU-NatashaNeural", "en-IE-EmilyNeural", "en-US-GuyNeural"], "rounds": 5, "answer": "Ascolta la fine: «-ii» è employee (il dipendente), «-er» è employer (il datore), «-ment» è employment (il lavoro). «employ» da solo è il verbo: assumere." },
+        { "type": "read", "text": "A good employer listens to every employee.", "it": "Un buon datore di lavoro ascolta ogni dipendente." }
+      ]
+    }
+  }
+}

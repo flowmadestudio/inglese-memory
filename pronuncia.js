@@ -93,6 +93,34 @@ async function speak(text, voice = VOICE) {
   await voicePlayer.play();
   return voicePlayer;
 }
+// Like speak(), but also returns when each word is said (seconds), for lip-sync and captions.
+const timedCache = new Map();
+async function speakTimed(text, voice = VOICE) {
+  unlock();
+  const key = voice + "|" + text;
+  let hit = timedCache.get(key);
+  if (!hit) {
+    const { SDK, cfg } = await config();
+    cfg.speechSynthesisVoiceName = voice;
+    cfg.speechSynthesisOutputFormat = SDK.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
+    const synth = new SDK.SpeechSynthesizer(cfg, null);
+    const words = [];
+    synth.wordBoundary = (_, e) => {
+      if (e.boundaryType !== undefined && String(e.boundaryType).toLowerCase().includes("punctuation")) return;
+      const start = e.audioOffset / 1e7, dur = e.duration ? (e.duration > 1e4 ? e.duration / 1e7 : e.duration / 1000) : .25;
+      words.push({ text: e.text, start, end: start + Math.max(.08, dur) });
+    };
+    const result = await new Promise((res, rej) => synth.speakTextAsync(text, res, rej));
+    synth.close();
+    if (result.reason !== SDK.ResultReason.SynthesizingAudioCompleted) throw new Error("tts");
+    hit = { url: URL.createObjectURL(new Blob([result.audioData], { type: "audio/mpeg" })), words };
+    timedCache.set(key, hit);
+  }
+  voicePlayer.pause(); voicePlayer.src = hit.url; voicePlayer.onended = null;
+  await voicePlayer.play();
+  return { player: voicePlayer, words: hit.words };
+}
+
 // Resolves when the current line has finished (or was stopped).
 const finished = p => new Promise(res => { if (p.ended || p.paused) return res(); p.onended = res; p.onpause = res; });
 function stop() { voicePlayer.pause(); }
@@ -126,5 +154,5 @@ function tipFor(w) {
   return worst && worst.score < 60 ? `«${w.word}»: il suono /${worst.ipa}/ non era chiaro. Ascoltala e ripeti piano.` : `«${w.word}»: ascoltala e ripeti piano.`;
 }
 
-window.Pronuncia = { assess, speak, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
+window.Pronuncia = { assess, speak, speakTimed, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
 document.dispatchEvent(new Event("pronuncia:ready"));
