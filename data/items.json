@@ -1,0 +1,390 @@
+{
+ "pairs": [
+  {
+   "id": "depend on",
+   "base": "depend",
+   "rank": 731,
+   "it": "dipendere da",
+   "trap": "depend from",
+   "label": "depend on"
+  },
+  {
+   "id": "married to",
+   "base": "marry",
+   "rank": 775,
+   "it": "sposato con",
+   "trap": "married with",
+   "label": "married to"
+  },
+  {
+   "id": "listen to",
+   "base": "listen",
+   "rank": 573,
+   "it": "ascoltare",
+   "trap": "listen music",
+   "label": "listen to"
+  },
+  {
+   "id": "wait for",
+   "base": "wait",
+   "rank": 403,
+   "it": "aspettare qualcuno",
+   "trap": "wait you",
+   "label": "wait for"
+  },
+  {
+   "id": "ask for",
+   "base": "ask",
+   "rank": 134,
+   "it": "chiedere (qualcosa)",
+   "trap": "ask help",
+   "label": "ask for"
+  },
+  {
+   "id": "look for",
+   "base": "look",
+   "rank": 75,
+   "it": "cercare",
+   "trap": "search my keys",
+   "label": "look for"
+  },
+  {
+   "id": "pay for",
+   "base": "pay",
+   "rank": 220,
+   "it": "pagare (qualcosa)",
+   "trap": "pay the dinner",
+   "label": "pay for"
+  },
+  {
+   "id": "good at",
+   "base": "good",
+   "rank": 56,
+   "it": "bravo in",
+   "trap": "good in",
+   "label": "good at"
+  },
+  {
+   "id": "interested in",
+   "base": "interest",
+   "rank": 142,
+   "it": "interessato a",
+   "trap": "interested to",
+   "label": "interested in"
+  },
+  {
+   "id": "afraid of",
+   "base": "afraid",
+   "rank": 1353,
+   "it": "aver paura di",
+   "trap": "afraid for",
+   "label": "afraid of"
+  },
+  {
+   "id": "arrive at",
+   "base": "arrive",
+   "rank": 588,
+   "it": "arrivare a",
+   "trap": "arrive to",
+   "label": "arrive at / in"
+  },
+  {
+   "id": "think about",
+   "base": "think",
+   "rank": 47,
+   "it": "pensare a",
+   "trap": "think to",
+   "label": "think about"
+  },
+  {
+   "id": "different from",
+   "base": "different",
+   "rank": 149,
+   "it": "diverso da",
+   "trap": "different of",
+   "label": "different from"
+  },
+  {
+   "id": "responsible for",
+   "base": "responsible",
+   "rank": 1082,
+   "it": "responsabile di",
+   "trap": "responsible of",
+   "label": "responsible for"
+  },
+  {
+   "id": "agree with",
+   "base": "agree",
+   "rank": 420,
+   "it": "essere d'accordo con",
+   "trap": "agree you",
+   "label": "agree with"
+  },
+  {
+   "id": "explain to",
+   "base": "explain",
+   "rank": 489,
+   "it": "spiegare a",
+   "trap": "explain me",
+   "label": "explain to"
+  },
+  {
+   "id": "discuss",
+   "base": "discuss",
+   "rank": 605,
+   "it": "discutere di",
+   "trap": "discuss about",
+   "label": "discuss (senza about)",
+   "noPrep": true
+  },
+  {
+   "id": "enter",
+   "base": "enter",
+   "rank": 717,
+   "it": "entrare in",
+   "trap": "enter in the room",
+   "label": "enter (senza in)",
+   "noPrep": true
+  },
+  {
+   "id": "belong to",
+   "base": "belong",
+   "rank": 1412,
+   "it": "appartenere a",
+   "label": "belong to"
+  },
+  {
+   "id": "consist of",
+   "base": "consist",
+   "rank": 1547,
+   "it": "consistere in, essere fatto di",
+   "label": "consist of"
+  },
+  {
+   "id": "deal with",
+   "base": "deal",
+   "rank": 321,
+   "it": "occuparsi di, gestire",
+   "label": "deal with"
+  },
+  {
+   "id": "rely on",
+   "base": "rely",
+   "rank": 1584,
+   "it": "contare su",
+   "label": "rely on"
+  },
+  {
+   "id": "care about",
+   "base": "care",
+   "rank": 313,
+   "it": "tenere a",
+   "label": "care about"
+  },
+  {
+   "id": "worry about",
+   "base": "worry",
+   "rank": 653,
+   "it": "preoccuparsi di",
+   "label": "worry about"
+  },
+  {
+   "id": "apply for",
+   "base": "apply",
+   "rank": 611,
+   "it": "fare domanda per",
+   "label": "apply for"
+  },
+  {
+   "id": "succeed in",
+   "base": "succeed",
+   "rank": 1586,
+   "it": "riuscire a",
+   "label": "succeed in"
+  },
+  {
+   "id": "insist on",
+   "base": "insist",
+   "rank": 1551,
+   "it": "insistere su/per",
+   "label": "insist on"
+  },
+  {
+   "id": "proud of",
+   "base": "proud",
+   "rank": 1890,
+   "it": "orgoglioso di",
+   "label": "proud of"
+  },
+  {
+   "id": "tired of",
+   "base": "tire",
+   "rank": 1331,
+   "it": "stufo di",
+   "label": "tired of"
+  },
+  {
+   "id": "similar to",
+   "base": "similar",
+   "rank": 594,
+   "it": "simile a",
+   "label": "similar to"
+  },
+  {
+   "id": "famous for",
+   "base": "famous",
+   "rank": 1017,
+   "it": "famoso per",
+   "label": "famous for"
+  },
+  {
+   "id": "according to",
+   "base": "accord",
+   "rank": 522,
+   "it": "secondo",
+   "label": "according to"
+  }
+ ],
+ "phrases": [
+  {
+   "id": "you know",
+   "it": "sai, cioè"
+  },
+  {
+   "id": "I mean",
+   "it": "voglio dire"
+  },
+  {
+   "id": "I suppose",
+   "it": "immagino, suppongo"
+  },
+  {
+   "id": "a little bit",
+   "it": "un pochino"
+  },
+  {
+   "id": "kind of",
+   "it": "tipo, un po'"
+  },
+  {
+   "id": "to be honest",
+   "it": "a dire il vero"
+  },
+  {
+   "id": "actually",
+   "it": "in realtà (non «attualmente»)"
+  },
+  {
+   "id": "by the way",
+   "it": "a proposito"
+  },
+  {
+   "id": "anyway",
+   "it": "comunque"
+  },
+  {
+   "id": "as well",
+   "it": "anche"
+  },
+  {
+   "id": "what do you mean",
+   "it": "cosa intendi?"
+  },
+  {
+   "id": "that makes sense",
+   "it": "ha senso, capito"
+  },
+  {
+   "id": "it depends",
+   "it": "dipende"
+  },
+  {
+   "id": "I'm not sure",
+   "it": "non sono sicuro"
+  },
+  {
+   "id": "never mind",
+   "it": "lascia stare"
+  },
+  {
+   "id": "hang on",
+   "it": "aspetta un attimo"
+  },
+  {
+   "id": "I'll let you know",
+   "it": "ti faccio sapere"
+  },
+  {
+   "id": "it's up to you",
+   "it": "decidi tu"
+  },
+  {
+   "id": "have a look",
+   "it": "dare un'occhiata"
+  },
+  {
+   "id": "figure out",
+   "it": "capire, risolvere"
+  },
+  {
+   "id": "find out",
+   "it": "scoprire"
+  },
+  {
+   "id": "come on",
+   "it": "dai!"
+  },
+  {
+   "id": "no way",
+   "it": "non ci credo! / neanche per sogno"
+  },
+  {
+   "id": "shut up",
+   "it": "ma dai! / stai zitto"
+  },
+  {
+   "id": "it's no big deal",
+   "it": "non è niente di grave"
+  },
+  {
+   "id": "I can't wait",
+   "it": "non vedo l'ora"
+  },
+  {
+   "id": "fair enough",
+   "it": "giusto, ci sta"
+  },
+  {
+   "id": "have you ever been to",
+   "it": "sei mai stato a…?"
+  },
+  {
+   "id": "how's it going",
+   "it": "come va?"
+  },
+  {
+   "id": "what's up",
+   "it": "che succede? / come va?"
+  },
+  {
+   "id": "do you mind if",
+   "it": "ti dispiace se…?"
+  },
+  {
+   "id": "would you like",
+   "it": "ti andrebbe…?"
+  },
+  {
+   "id": "used to",
+   "it": "una volta (facevo)"
+  },
+  {
+   "id": "at the moment",
+   "it": "in questo momento"
+  },
+  {
+   "id": "these days",
+   "it": "di questi tempi"
+  }
+ ]
+}

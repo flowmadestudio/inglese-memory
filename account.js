@@ -160,6 +160,19 @@ window.Account = {
   // A short-lived Azure Speech token from our server (the Azure key stays on the server).
   speechToken: () => api("/speech-token"),
   signedIn: () => !!auth.currentUser,
+  // Every saved item (word, pair or phrase) as {key: data}, from this browser's copy.
+  all() {
+    const out = {};
+    try { Object.keys(localStorage).filter(k => k.endsWith("-progress")).forEach(k => out[k.slice(0, -9)] = readLocal(k.slice(0, -9))); } catch {}
+    return out;
+  },
+  // The learner's own order of words to study.
+  queue() { try { return JSON.parse(localStorage.getItem("queue") || "null"); } catch { return null; } },
+  async setQueue(words) {
+    try { localStorage.setItem("queue", JSON.stringify(words)); } catch {}
+    if (!auth.currentUser) return;
+    try { await api("/queue", { method: "PUT", body: JSON.stringify({ words }) }); syncState("· salvato"); } catch { syncState("· salvato solo qui"); }
+  },
 };
 
 // Each account gets its own copy in this browser: switching account must not mix them.
@@ -167,12 +180,14 @@ const OWNER = "account-owner";
 async function pullAll(user) {
   let prevOwner = null; try { prevOwner = localStorage.getItem(OWNER); } catch {}
   if (prevOwner && prevOwner !== user.uid) {
-    try { Object.keys(localStorage).filter(k => k.endsWith("-progress")).forEach(k => localStorage.removeItem(k)); } catch {}
+    try { Object.keys(localStorage).filter(k => k.endsWith("-progress") || k === "queue").forEach(k => localStorage.removeItem(k)); } catch {}
   }
   try { localStorage.setItem(OWNER, user.uid); } catch {}
   try {
     const me = await api("/me");
     for (const [word, data] of Object.entries(me.progress)) writeLocal(word, data);
+    if (me.queue?.length) { try { localStorage.setItem("queue", JSON.stringify(me.queue)); } catch {} }
+    else { const q = window.Account.queue(); if (q?.length) window.Account.setQueue(q); }
     // Progress made here before logging in, and not yet on the account: send it up.
     if (!prevOwner) {
       for (const k of Object.keys(localStorage).filter(k => k.endsWith("-progress"))) {

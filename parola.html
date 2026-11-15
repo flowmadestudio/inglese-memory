@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3efe7">
+<style>body{margin:0} img{max-width:100%} :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Lezione · gate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one lesson card at a time, like a departure board ticket; progress strip on top, "La conosco bene" floating bottom-right */
+:root {
+  --bg: #f3efe7; --fg: #2a2320; --muted: #6e6259; --line: #ddd4c6; --card: #fffaf2;
+  --accent: #f2b632; --accent-ink: #2a2320; --curtain: #8e2020; --key: #c8541e;
+  --ok: #2f7d4f; --ok-bg: #e5f4e4; --warn: #9a5a06; --warn-bg: #f9eeda;
+  --font-display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #15171c; --fg: #f1ece4; --muted: #a59c92; --line: #2c2f37; --card: #1d2027; --accent: #f5c04a; --accent-ink: #1a1510; --curtain: #b33a3a; --key: #f5c04a; --ok: #7fd39b; --ok-bg: #1d3326; --warn: #f0c070; --warn-bg: #3a2e18; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #15171c; --fg: #f1ece4; --muted: #a59c92; --line: #2c2f37; --card: #1d2027; --accent: #f5c04a; --accent-ink: #1a1510; --curtain: #b33a3a; --key: #f5c04a; --ok: #7fd39b; --ok-bg: #1d3326; --warn: #f0c070; --warn-bg: #3a2e18; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 96px; }
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; }
+.brand span { color: var(--key); }
+.steps { display: flex; gap: 4px; flex: 1 1 260px; max-width: 420px; }
+.steps i { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.steps i.done { background: var(--accent); }
+.steps i.now { background: var(--fg); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: clamp(18px, 4vw, 30px); display: grid; gap: 16px; }
+.eyebrow { font: 800 .74rem var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: clamp(1.6rem, 5vw, 2.2rem); }
+h2 { font-size: clamp(1.3rem, 4vw, 1.7rem); }
+p { margin: 0; max-width: 62ch; }
+.muted { color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: 700 1rem var(--font-body); border-radius: 999px; padding: .65em 1.2em; cursor: pointer; border: 2px solid var(--fg); background: transparent; color: var(--fg); }
+button.primary { background: var(--fg); color: var(--bg); }
+button.gold { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--key); outline-offset: 2px; }
+.play { display: inline-flex; align-items: center; gap: .55em; }
+.play::before { content: ""; width: 0; height: 0; border-left: .7em solid currentColor; border-top: .45em solid transparent; border-bottom: .45em solid transparent; }
+.play.playing::before { width: .6em; height: .8em; border: 0; background: linear-gradient(90deg, currentColor 35%, transparent 35% 65%, currentColor 65%); }
+textarea, input[type=text] { width: 100%; font: 600 1.05rem var(--font-body); padding: .7em .9em; border-radius: 12px; border: 2px solid var(--line); background: var(--bg); color: var(--fg); }
+textarea { min-height: 84px; resize: vertical; }
+.answer { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+.mic { width: 52px; height: 52px; padding: 0; display: grid; place-items: center; }
+.mic svg { width: 22px; height: 22px; }
+.mic.on { background: var(--curtain); border-color: var(--curtain); color: #fff; }
+.feedback { border-radius: 12px; padding: 12px 14px; font-weight: 600; }
+.feedback.ok { background: var(--ok-bg); color: var(--ok); }
+.feedback.no { background: var(--warn-bg); color: var(--warn); }
+.cloze { font: 600 clamp(1.05rem, 3vw, 1.3rem) var(--font-display); line-height: 1.7; }
+.cloze .blank { display: inline-block; min-width: 3.5em; border-bottom: 3px solid var(--key); text-align: center; color: var(--key); }
+.word { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.word strong { font-family: var(--font-display); font-size: clamp(2.6rem, 9vw, 3.6rem); line-height: 1; }
+.word .ipa { font-size: 1.15rem; color: var(--muted); }
+.say { font-weight: 800; color: var(--key); }
+dl.facts { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; }
+dl.facts dt { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 800; padding-top: .2em; }
+dl.facts dd { margin: 0; min-width: 0; }
+.voices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.voice { display: grid; gap: 2px; text-align: left; border-radius: 14px; padding: 12px 14px; border: 2px solid var(--line); background: var(--bg); }
+.voice b { font-family: var(--font-display); font-size: 1.05rem; }
+.voice span { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.voice.playing { border-color: var(--key); }
+.heard { font: 700 clamp(1.3rem, 4vw, 1.8rem) var(--font-display); min-height: 1.4em; }
+.stage { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: var(--curtain); }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#cam { transform-box: view-box; transform-origin: 560px 380px; }
+.ipa-tag { position: absolute; right: 9%; bottom: 6%; background: var(--accent); color: var(--accent-ink); font: 700 clamp(.75rem, 2vw, 1.05rem) var(--font-display); padding: .3em .7em; border-radius: .6em; opacity: 0; transition: opacity .2s; }
+.ipa-tag.on { opacity: 1; }
+.start { position: absolute; inset: 0; display: grid; place-items: center; background: rgb(40 10 10 / .3); border: 0; border-radius: 0; padding: 0; }
+.start span { font: 700 clamp(1rem, 3vw, 1.4rem) var(--font-display); background: var(--accent); color: var(--accent-ink); padding: .6em 1.2em; border-radius: 999px; }
+.captions { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.05rem, 3vw, 1.5rem); display: flex; flex-wrap: wrap; gap: .1em .35em; justify-content: center; }
+.captions span { color: var(--muted); }
+.captions span.said, .captions span.now { color: var(--fg); }
+.captions span.key { color: var(--key); text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 5px; }
+.clips { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.clip { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border: 2px solid var(--line); border-radius: 14px; background: var(--bg); }
+.clip.playing { border-color: var(--key); }
+.clip > div { min-width: 0; display: grid; gap: 2px; }
+.clip b { font-family: var(--font-display); font-size: 1.05rem; }
+.clip span { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.clip .ctext { margin-top: 6px; font-size: .98rem; }
+.clip mark { background: var(--accent); color: var(--accent-ink); padding: 0 .2em; border-radius: 4px; }
+.cbtn { width: 46px; height: 46px; padding: 0; display: grid; place-items: center; background: var(--fg); border-color: var(--fg); }
+.cbtn::before { content: ""; border-left: 13px solid var(--bg); border-top: 8px solid transparent; border-bottom: 8px solid transparent; margin-left: 4px; }
+.clip.playing .cbtn::before { border: 0; width: 12px; height: 14px; margin: 0; background: linear-gradient(90deg, var(--bg) 35%, transparent 35% 65%, var(--bg) 65%); }
+.show { font-size: .85rem; padding: .45em .8em; }
+@media (max-width: 520px) { .clip { grid-template-columns: auto 1fr; } .clip .show { grid-column: 1 / -1; justify-self: start; } }
+.links { display: grid; gap: 10px; }
+.link { display: grid; gap: 2px; padding: 14px 16px; border-radius: 14px; border: 2px solid var(--line); color: var(--fg); text-decoration: none; }
+.link b { font-family: var(--font-display); font-size: 1.1rem; }
+.link span { color: var(--muted); font-size: .92rem; }
+.link:hover { border-color: var(--key); }
+.tag { display: inline-block; font: 800 .7rem var(--font-body); letter-spacing: .06em; text-transform: uppercase; padding: .2em .55em; border-radius: 6px; background: var(--warn-bg); color: var(--warn); margin-left: 6px; vertical-align: middle; }
+.plan { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.plan button { display: grid; gap: 2px; border: 2px dashed var(--line); border-radius: 12px; padding: 10px; text-align: center; font-weight: 700; }
+.plan b { display: block; font-family: var(--font-display); font-size: 1.3rem; }
+.plan span { font-size: .8rem; color: var(--muted); font-weight: 700; }
+.plan em { font-style: normal; font-size: .78rem; color: var(--key); }
+.plan .due { border-style: solid; border-color: var(--accent); background: var(--warn-bg); }
+.plan .did { border-style: solid; border-color: var(--ok); }
+.plan .did em { color: var(--ok); }
+.due-banner { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; background: var(--warn-bg); border: 2px solid var(--accent); border-radius: 16px; padding: 12px 16px; }
+.due-banner b { font-family: var(--font-display); font-size: 1.1rem; }
+.rv-items { display: grid; gap: 14px; }
+.rv-item { border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; background: var(--bg); }
+.rv-item h3 { margin: 0; font: 700 1.1rem var(--font-display); }
+.rv-text { display: grid; gap: 6px; }
+.rv-text p { max-width: none; }
+.rv-text .who { font-weight: 800; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.rv-text .now { background: var(--warn-bg); border-radius: 8px; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opts button { min-width: 5.5em; font-family: var(--font-display); font-size: 1.1rem; }
+.opts .right { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.opts button:disabled { opacity: 1; cursor: default; }
+.opts .wrong { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+.read { display: grid; gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; }
+.tenses { display: flex; gap: 6px; flex-wrap: wrap; }
+.tenses button { font-size: .9rem; padding: .45em .95em; border-color: var(--line); }
+.tenses button[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.sentence { font: 600 clamp(1.3rem, 4vw, 1.75rem) var(--font-display); line-height: 1.55; display: flex; flex-wrap: wrap; gap: .1em .35em; max-width: none; }
+.sentence span { border-bottom: 4px solid transparent; }
+.sentence .key { background: var(--accent); color: var(--accent-ink); border-radius: 5px; padding: 0 .2em; }
+.sentence .good { border-bottom-color: var(--ok); }
+.sentence .mid { border-bottom-color: #e0a020; }
+.sentence .bad { border-bottom-color: #c0392b; }
+.score { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; }
+.score b { font-family: var(--font-display); font-size: 1.15rem; }
+.score .big { font: 700 1.7rem var(--font-display); }
+.score .big small { font-size: .9rem; color: var(--muted); }
+.tips { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.tips li { display: flex; gap: 10px; align-items: flex-start; }
+.tips li::before { content: ""; flex: none; width: 11px; height: 11px; margin-top: .45em; border-radius: 50%; background: var(--dot, #e0a020); }
+.tips li.bad { --dot: #c0392b; }
+.small { font-size: .85rem; }
+.know { position: fixed; right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 5; background: var(--card); box-shadow: 0 6px 20px rgb(0 0 0 / .15); }
+.homeLink { font-weight: 800; color: var(--fg); background: var(--accent); border-radius: 999px; padding: .65em 1.2em; text-decoration: none; }
+.nav { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 520px) { dl.facts { grid-template-columns: 1fr; gap: 2px; } dl.facts dd { margin-bottom: 8px; } .plan { grid-template-columns: repeat(2, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .ipa-tag { transition: none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="due-banner" id="dueBanner" hidden>
+    <div><b id="dueTitle">Oggi hai un ripasso di gate</b><br><span class="muted" id="dueSub"></span></div>
+    <button class="gold" type="button" id="dueGo">Fai il ripasso</button>
+  </div>
+  <div class="top">
+    <a class="brand" href="./" aria-label="Torna alla home" style="color:inherit;text-decoration:none">‹ Inglese Memory<span>.</span> <span class="muted" style="font-weight:600;font-size:1rem">gate</span></a>
+    <div class="steps" id="steps" aria-hidden="true"></div>
+  </div>
+
+  <!-- 1. Listen -->
+  <section class="card step" data-step="listen">
+    <div class="eyebrow">Passo 1 · Ascolta</div>
+    <h1>Sei in aeroporto. Parte un annuncio.</h1>
+    <p class="muted">Non c'è niente da leggere: ascolta e basta. Puoi riascoltarlo quante volte vuoi.</p>
+    <div class="row"><button class="gold play" data-audio="annuncio.mp3" type="button">Ascolta l'annuncio</button><span class="muted" id="listenCount"></span></div>
+    <div class="nav"><span></span><button class="primary" data-go="question" type="button">Ho ascoltato</button></div>
+  </section>
+
+  <!-- 2. Question -->
+  <section class="card step" data-step="question" hidden>
+    <div class="eyebrow">Passo 2 · Hai capito?</div>
+    <h2>What has changed for the Manchester flight?</h2>
+    <p class="muted">Rispondi come ti viene, anche in italiano. Scrivi o parla.</p>
+    <div class="answer">
+      <textarea id="qAnswer" placeholder="Per esempio: è cambiato…" aria-label="La tua risposta"></textarea>
+      <button class="mic" data-mic="qAnswer" type="button" aria-label="Rispondi a voce" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    </div>
+    <div class="row"><button class="play" data-audio="annuncio.mp3" type="button">Riascolta</button><button class="primary" id="checkQ" type="button">Controlla</button></div>
+    <div class="feedback" id="qFeedback" hidden></div>
+    <div class="nav" id="qNext" hidden><span></span><button class="primary" id="qContinue" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 3. Help: cloze -->
+  <section class="card step" data-step="cloze" hidden>
+    <div class="eyebrow">Passo 3 · Ti do una mano</div>
+    <h2>Riascolta e trova la parola che manca.</h2>
+    <p class="cloze">Please note there has been a <span class="blank">…</span> change. This flight will now depart from <span class="blank">…</span> twenty-seven, not <span class="blank">…</span> twelve.</p>
+    <p class="muted">È sempre la stessa parola, tre volte.</p>
+    <div class="row"><button class="gold play" data-audio="annuncio.mp3" type="button">Riascolta</button></div>
+    <div class="answer">
+      <input type="text" id="cAnswer" placeholder="La parola che manca" aria-label="La parola che manca" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="primary" id="checkC" type="button">Controlla</button>
+    </div>
+    <div class="feedback" id="cFeedback" hidden></div>
+    <div class="nav" id="cNext" hidden><span></span><button class="primary" data-go="explain" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 4. Explain -->
+  <section class="card step" data-step="explain" hidden>
+    <div class="eyebrow">Passo 4 · La parola</div>
+    <div class="word"><strong>gate</strong><span class="ipa">/ɡeɪt/</span><span class="say">si dice «gheit»</span></div>
+    <p id="explainShort" hidden><b>Giusto!</b> Il gate è l'uscita d'imbarco: nell'annuncio è cambiato, dal 12 al 27.</p>
+    <dl class="facts" id="explainLong">
+      <dt>In aeroporto</dt><dd>Il gate è l'uscita d'imbarco, il varco da cui sali sull'aereo. Nell'annuncio è cambiato: dal 12 al 27.</dd>
+      <dt>Fuori</dt><dd>Vuol dire cancello, portone.</dd>
+      <dt>Trappola</dt><dd>Non dirla come <em>get</em> (prendere). In <em>gate</em> c'è una «ei» lunga: gheit.</dd>
+      <dt>Curiosità</dt><dd>Viene dall'inglese antico <em>geat</em>, varco, apertura. Un gate è letteralmente un'apertura nel muro.</dd>
+      <dt>Esempio</dt><dd><em>Your flight leaves from gate 27.</em> · Il tuo volo parte dal gate 27.</dd>
+    </dl>
+    <div class="row"><button class="play" data-audio="gate-uk-f.mp3" type="button">Senti «gate»</button></div>
+    <div class="nav"><button data-toggle-long type="button" id="moreBtn" hidden>Spiegami di più</button><button class="primary" data-go="voices" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 5. Voices -->
+  <section class="card step" data-step="voices" hidden>
+    <div class="eyebrow">Passo 5 · Tante voci</div>
+    <h2>La stessa parola, detta da persone diverse.</h2>
+    <p class="muted">Ascoltale tutte: l'orecchio impara a riconoscerla anche quando cambia la voce.</p>
+    <div class="voices">
+      <button class="voice play-voice" data-audio="gate-uk-f.mp3" type="button"><b>Donna</b><span>Inglese britannico</span></button>
+      <button class="voice play-voice" data-audio="gate-uk-m.mp3" type="button"><b>Uomo</b><span>Inglese britannico</span></button>
+      <button class="voice play-voice" data-audio="gate-us-m.mp3" type="button"><b>Uomo</b><span>Inglese americano</span></button>
+    </div>
+    <div class="nav"><span></span><button class="primary" data-go="speak" type="button">Ora tocca a te</button></div>
+  </section>
+
+  <!-- 6. Speak -->
+  <section class="card step" data-step="speak" hidden>
+    <div class="eyebrow">Passo 6 · La dici tu</div>
+    <h2>Di' ad alta voce: <span class="say">gate</span></h2>
+    <p class="muted" id="speakHow">Premi il microfono e dilla. Se ti capisco, la pronuncia è chiara.</p>
+    <div class="row">
+      <button class="gold" id="speakBtn" type="button">🎙 Parla</button>
+      <button class="play" data-audio="gate-uk-m.mp3" type="button">Prima riascolta</button>
+    </div>
+    <div class="heard" id="heard" aria-live="polite"></div>
+    <div class="feedback" id="sFeedback" hidden></div>
+
+    <div class="read" id="readBox">
+      <div class="row" style="justify-content:space-between">
+        <h2>Ora leggi la frase intera</h2>
+        <div class="tenses" role="tablist" aria-label="Tempo del verbo">
+          <button role="tab" type="button" data-tense="past" aria-selected="true">Passato</button>
+          <button role="tab" type="button" data-tense="present" aria-selected="false">Presente</button>
+          <button role="tab" type="button" data-tense="future" aria-selected="false">Futuro</button>
+        </div>
+      </div>
+      <p class="sentence" id="rSentence" aria-live="polite"></p>
+      <p class="muted" id="rItalian"></p>
+      <div class="row">
+        <button class="play" id="rListen" type="button">Ascolta la frase giusta</button>
+        <button class="gold" id="rSpeak" type="button">🎙 Leggi ad alta voce</button>
+      </div>
+      <div class="score" id="rResult" hidden>
+        <div class="row" style="justify-content:space-between;align-items:baseline">
+          <b id="rVerdict"></b><span class="big" id="rScore"></span>
+        </div>
+        <ul class="tips" id="rTips"></ul>
+        <p class="muted small" id="rDetail"></p>
+      </div>
+      <p class="feedback no" id="rError" hidden></p>
+    </div>
+    <div class="nav"><span></span><button class="primary" data-go="scene" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 7. Scene -->
+  <section class="card step" data-step="scene" hidden>
+    <div class="eyebrow">Passo 7 · Alex, in ritardo come sempre</div>
+    <div class="stage">
+      <svg viewBox="0 0 1024 576" role="img" aria-label="Alex, un pupazzo di feltro con lo zaino, corre verso il gate 27 a forma di castello mentre la saracinesca si chiude.">
+        <defs>
+          <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd25a" stop-opacity=".9"/><stop offset="1" stop-color="#ffd25a" stop-opacity="0"/></radialGradient>
+          <clipPath id="arch"><path d="M716 449 L716 310 A88.5 68 0 0 1 893 310 L893 449 Z"/></clipPath>
+        </defs>
+        <g id="cam">
+          <image href="bg.jpg" x="0" y="0" width="1024" height="576" preserveAspectRatio="xMidYMid slice"/>
+          <ellipse id="signGlow" cx="805" cy="198" rx="150" ry="55" fill="url(#glow)" opacity="0"/>
+          <g clip-path="url(#arch)"><g id="portcullis"></g></g>
+          <g id="puppet">
+            <ellipse cx="0" cy="300" rx="150" ry="22" fill="#5a3a1a" opacity=".22"/>
+            <g id="armB"><image href="armB.png" x="-60" y="-20" width="122" height="278"/></g>
+            <g id="legB"><image href="legB.png" x="-80" y="-10" width="195" height="307"/></g>
+            <g id="legA"><image href="legA.png" x="-80" y="-10" width="189" height="308"/></g>
+            <g id="torso"><image href="torso.png" x="-235" y="-300" width="345" height="307"/></g>
+            <g id="head">
+              <image class="face" data-expr="happy" href="head.png" x="-250" y="-330" width="415" height="350"/>
+              <image class="face" data-expr="panic" href="head-panic.png" x="-250" y="-330" width="415" height="350" visibility="hidden"/>
+              <image class="face" data-expr="shock" href="head-shock.png" x="-250" y="-330" width="415" height="350" visibility="hidden"/>
+              <image class="face" data-expr="sad" href="head-sad.png" x="-250" y="-330" width="415" height="350" visibility="hidden"/>
+              <image class="mouth" data-shape="half" href="mouth-half.png" width="92" height="84" visibility="hidden"/>
+              <image class="mouth" data-shape="open" href="mouth-open.png" width="92" height="84" visibility="hidden"/>
+              <image class="mouth" data-shape="o" href="mouth-o.png" width="92" height="84" visibility="hidden"/>
+              <g id="sweat" fill="#7fb8f0" stroke="#4d8fd1" stroke-width="3" opacity="0"><path d="M175 -250 q16 26 0 36 q-16 -10 0 -36z"/><path d="M200 -195 q12 20 0 28 q-12 -8 0 -28z"/></g>
+            </g>
+            <g id="armA"><image href="armA.png" x="-70" y="-20" width="141" height="279"/></g>
+          </g>
+        </g>
+      </svg>
+      <div class="ipa-tag" id="ipaTag">gate · /ɡeɪt/ · «gheit»</div>
+      <button class="start" id="sceneStart" type="button" aria-label="Guarda la scenetta"><span>▶ Guarda la scenetta</span></button>
+    </div>
+    <div class="captions" id="captions" aria-live="polite"></div>
+    <div class="nav"><button id="sceneReplay" type="button">Riguarda</button><button class="primary" data-go="real" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 8. Real voices -->
+  <section class="card step" data-step="real" hidden>
+    <div class="eyebrow">Passo 8 · In giro per l'aeroporto</div>
+    <h2>Quattro situazioni, quattro voci.</h2>
+    <p class="muted">Ascolta prima senza leggere. Poi tocca «Mostra il testo» per controllare.</p>
+    <button class="gold play" id="playAll" type="button">Ascoltale tutte di fila</button>
+    <ol class="clips" id="clips">
+      <li class="clip" data-src="clip-rome.mp3"><button class="cbtn" type="button" aria-label="Ascolta"></button><div><b>Una turista, incerta</b><span>Inglese americano</span><p class="ctext" hidden><em>Excuse me… is this the <mark>gate</mark> for Rome?</em> · Scusi, è questo il gate per Roma?</p></div><button class="show" type="button">Mostra il testo</button></li>
+      <li class="clip" data-src="clip-staff.mp3"><button class="cbtn" type="button" aria-label="Ascolta"></button><div><b>Il personale di terra</b><span>Inglese britannico</span><p class="ctext" hidden><em>Sorry, sir, <mark>gate</mark> nine is closed. You need to go to <mark>gate</mark> fourteen.</em> · Mi spiace, il gate 9 è chiuso. Deve andare al 14.</p></div><button class="show" type="button">Mostra il testo</button></li>
+      <li class="clip" data-src="clip-phone.mp3"><button class="cbtn" type="button" aria-label="Ascolta"></button><div><b>Un viaggiatore al telefono</b><span>Inglese americano</span><p class="ctext" hidden><em>Yeah, I'm at the airport. We're boarding at <mark>gate</mark> B22 in ten minutes.</em> · Sono in aeroporto, imbarchiamo al gate B22 tra dieci minuti.</p></div><button class="show" type="button">Mostra il testo</button></li>
+      <li class="clip" data-src="clip-wrong.mp3"><button class="cbtn" type="button" aria-label="Ascolta"></button><div><b>Un'amica che ride</b><span>Inglese britannico</span><p class="ctext" hidden><em>Oh no, wrong <mark>gate</mark>! Come on, run!</em> · Oh no, gate sbagliato! Dai, corri!</p></div><button class="show" type="button">Mostra il testo</button></li>
+    </ol>
+    <div class="nav"><span></span><button class="primary" data-go="done" type="button">Avanti</button></div>
+  </section>
+
+  <!-- 9. Done + review -->
+  <section class="card step" data-step="done" hidden>
+    <div class="eyebrow">Passo 9 · Fatto</div>
+    <h1>Gate è tua.</h1>
+    <p>Ora la riconosci in un annuncio e la sai dire. Per non perderla, torna a trovarla qui:</p>
+    <div class="plan" id="plan"></div>
+    <p class="muted">A ogni ripasso la senti in un contesto nuovo: un'ultima chiamata, un dialogo al banco, un americano che parla veloce, un gioco d'orecchio. Tocca un riquadro per provarlo subito.</p>
+    <div class="nav"><button id="restart" type="button">Rifai il percorso</button><a class="homeLink" href="./">Torna alla home</a></div>
+  </section>
+
+  <!-- Spaced review: a new context each time (content in data/words/gate.json) -->
+  <section class="card step" data-step="review" hidden>
+    <div class="eyebrow" id="rvEyebrow">Ripasso</div>
+    <h2 id="rvTitle"></h2>
+    <p class="muted" id="rvIntro"></p>
+    <div class="rv-items" id="rvItems"></div>
+    <p class="feedback no" id="rvError" hidden></p>
+    <div class="nav"><button type="button" id="rvBack">Indietro</button><button class="primary" type="button" id="rvDone">Ho finito il ripasso</button></div>
+  </section>
+
+  <!-- Asked after a right first answer -->
+  <section class="card step" data-step="ask" hidden>
+    <div class="eyebrow">Hai capito al primo ascolto</div>
+    <h2>Conosci già la parola <span class="say">gate</span>?</h2>
+    <p class="muted">Se la conosci, due prove veloci e passi oltre. Se no, la impariamo insieme.</p>
+    <div class="row"><button class="primary" id="askYes" type="button">Sì, la conosco</button><button id="askNo" type="button">No, insegnamela</button></div>
+  </section>
+
+  <!-- Quick check: meaning first, then pronunciation -->
+  <section class="card step" data-step="quick" hidden>
+    <div class="eyebrow">Verifica veloce · 2 prove</div>
+    <h2>1. Cosa vuol dire <span class="say">gate</span>?</h2>
+    <p class="muted">Rispondi come ti viene, in italiano o in inglese. Scrivi o parla.</p>
+    <div class="answer">
+      <textarea id="kMeaning" placeholder="Per esempio: è…" aria-label="Il significato di gate"></textarea>
+      <button class="mic" data-mic="kMeaning" type="button" aria-label="Rispondi a voce" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    </div>
+    <div class="row"><button class="primary" id="checkMeaning" type="button">Controlla</button></div>
+    <div class="feedback" id="mFeedback" hidden></div>
+
+    <div id="partTwo" hidden style="display:grid;gap:14px">
+      <h2>2. Leggi ad alta voce</h2>
+      <p class="cloze" id="kSentence">Yesterday we waited at the wrong gate for an hour.</p>
+      <p class="muted">Ieri abbiamo aspettato al gate sbagliato per un'ora.</p>
+      <div class="row"><button class="gold" id="kSpeak" type="button">🎙 Leggi</button><button id="kSelf" type="button" hidden>L'ho letta ad alta voce</button></div>
+      <div class="heard" id="kHeard" aria-live="polite"></div>
+      <div class="feedback" id="pFeedback" hidden></div>
+    </div>
+    <div class="nav" id="kNext" hidden><span></span><button class="primary" id="kContinue" type="button">Avanti</button></div>
+  </section>
+</div>
+
+<button class="know" id="knowBtn" type="button">La conosco bene</button>
+<audio id="player" preload="auto"></audio>
+<audio id="voice" src="voce-gate.mp3" preload="auto"></audio>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const ORDER = ["listen", "question", "cloze", "explain", "voices", "speak", "scene", "real", "done"];
+  const steps = Object.fromEntries([...document.querySelectorAll(".step")].map(s => [s.dataset.step, s]));
+  let current = "listen", lastMain = "listen", resetClips = () => {};
+
+  // progress strip
+  const strip = $("steps");
+  ORDER.forEach(() => strip.appendChild(document.createElement("i")));
+  function go(name) {
+    Object.values(steps).forEach(s => s.hidden = s.dataset.step !== name);
+    current = name;
+    const side = name === "quick" || name === "ask" || name === "review";
+    if (name !== "review") window.Pronuncia?.stop();
+    if (!side) lastMain = name;
+    const idx = ORDER.indexOf(side ? lastMain : name);
+    [...strip.children].forEach((b, i) => { b.className = i < idx ? "done" : i === idx ? "now" : ""; });
+    $("knowBtn").hidden = side || name === "done";
+    stopAudio(); resetClips();
+    if (name === "done") renderPlan();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    steps[name].querySelector("h1, h2")?.setAttribute("tabindex", "-1");
+    steps[name].querySelector("h1, h2")?.focus({ preventScroll: true });
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go);
+    if (e.target.closest("[data-go-back]")) go(lastMain);
+  });
+
+  // Audio
+  const player = $("player");
+  let playingBtn = null, listens = 0;
+  function stopAudio() { player.pause(); playingBtn?.classList.remove("playing"); playingBtn = null; }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-audio]"); if (!b) return;
+    if (playingBtn === b) { stopAudio(); return; }
+    stopAudio();
+    player.src = b.dataset.audio; player.currentTime = 0;
+    player.play().then(() => { playingBtn = b; b.classList.add("playing"); }).catch(() => {});
+    if (b.dataset.audio === "annuncio.mp3" && current === "listen") { listens++; $("listenCount").textContent = listens === 1 ? "Ascoltato 1 volta" : `Ascoltato ${listens} volte`; }
+  });
+  player.addEventListener("ended", () => { playingBtn?.classList.remove("playing"); playingBtn = null; });
+
+  // Speech recognition from the browser (Chrome, Edge, Safari): free, no account needed
+  function webSpeech() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return null;
+    let rec = null, active = false;
+    const cbs = { p: [], f: [], s: [] };
+    return {
+      active: () => active,
+      start() {
+        return new Promise((res, rej) => {
+          rec = new SR(); rec.lang = "en-US"; rec.interimResults = true; rec.continuous = false;
+          rec.onresult = e => {
+            let interim = "";
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+              const r = e.results[i];
+              if (r.isFinal) cbs.f.forEach(fn => fn({ text: r[0].transcript })); else interim += r[0].transcript;
+            }
+            if (interim) cbs.p.forEach(fn => fn({ text: interim }));
+          };
+          rec.onstart = () => { active = true; cbs.s.forEach(fn => fn({ state: "listening" })); res(); };
+          rec.onend = () => { active = false; cbs.s.forEach(fn => fn({ state: "idle" })); };
+          rec.onerror = e => { if (!active) rej({ code: e.error === "not-allowed" ? "not_granted" : "failed" }); };
+          try { rec.start(); } catch (err) { rej({ code: "failed" }); }
+        });
+      },
+      stop() { rec?.stop(); return Promise.resolve(); },
+      onPartial: fn => cbs.p.push(fn), onFinal: fn => cbs.f.push(fn), onState: fn => cbs.s.push(fn)
+    };
+  }
+  function useDictation(d) {
+    dictation = d;
+    if (d) document.querySelectorAll("[data-mic]").forEach(m => m.hidden = false);
+    else $("speakHow").textContent = "Dilla ad alta voce, poi confrontala con l'audio.";
+  }
+  // Inside Claude the page uses Claude's tools; on the public site, the browser's own
+  let dictation = null, sample = null;
+  if (window.claude?.use) {
+    claude.use("dictation").then(d => useDictation(d || webSpeech()));
+    claude.use("sample").then(s => { sample = s; });
+  } else {
+    useDictation(webSpeech());
+  }
+  // Dictation into a field
+  let micTarget = null, micBtn = null, finalText = "", onWords = null;
+  function startDictation(btn, handler) {
+    if (!dictation) return;
+    if (dictation.active()) { dictation.stop(); return; }
+    micBtn = btn; onWords = handler; finalText = "";
+    dictation.start({ language: "en" }).catch(err => {
+      btn.classList.remove("on");
+      if (err?.code === "unavailable") dictation.start().catch(() => {});
+      else if (err?.code === "not_granted") { btn.hidden = true; }
+    });
+  }
+  let subscribed = false;
+  function subscribe() {
+    if (subscribed || !dictation) return; subscribed = true;
+    dictation.onPartial(({ text }) => onWords?.(finalText + text, false));
+    dictation.onFinal(({ text }) => { finalText = (finalText + text).replace(/^\s+/, ""); onWords?.(finalText, true); });
+    dictation.onState(({ state }) => { micBtn?.classList.toggle("on", state !== "idle"); if (micBtn === $("speakBtn")) micBtn.textContent = state === "idle" ? "🎙 Parla" : "■ Fine"; });
+  }
+  document.querySelectorAll("[data-mic]").forEach(btn => btn.addEventListener("click", () => {
+    subscribe();
+    const field = $(btn.dataset.mic);
+    startDictation(btn, text => { field.value = text; });
+  }));
+
+  // Step 2: AI checks the meaning; a simple keyword check when AI is not available
+  function localCheck(t) {
+    t = t.toLowerCase();
+    return /(gate|gheit|uscit|imbarco|cancell|porta)/.test(t) && /(cambi|change|27|ventisette|twenty|nuov|diverso|spost)/.test(t);
+  }
+  let qCorrect = false;
+  $("checkQ").addEventListener("click", async () => {
+    const ans = $("qAnswer").value.trim();
+    const fb = $("qFeedback");
+    if (!ans) { fb.hidden = false; fb.className = "feedback no"; fb.textContent = "Scrivi o di' cosa hai capito, anche solo due parole."; return; }
+    const btn = $("checkQ"); btn.disabled = true;
+    fb.hidden = false; fb.className = "feedback"; fb.textContent = "Controllo…";
+    let verdict = null;
+    if (sample) {
+      try {
+        verdict = await sample.json(
+          "You check an Italian learner's answer to an English listening question. The audio was an airport announcement: the gate for flight NX482 to Manchester changed from gate 12 to gate 27; boarding in about 15 minutes. Question: \"What has changed for the Manchester flight?\" The answer is correct only if it shows the learner understood that the GATE (boarding gate / uscita d'imbarco) changed; mentioning 27 alone without the idea of a gate or exit change is not enough. The answer may be in Italian or English and may have spelling mistakes.\n" +
+          "Learner's answer: \"" + ans.slice(0, 400) + "\"\n" +
+          'Reply with only JSON: {"correct": true|false, "feedback": "one short, warm sentence in Italian, without revealing the word gate if wrong"}',
+          { modelTier: "quick" });
+      } catch (e) { verdict = null; }
+    }
+    if (!verdict || typeof verdict.correct !== "boolean") verdict = { correct: localCheck(ans), feedback: "" };
+    qCorrect = verdict.correct;
+    fb.className = "feedback " + (qCorrect ? "ok" : "no");
+    fb.textContent = verdict.feedback || (qCorrect ? "Esatto, hai capito il punto." : "Non proprio. Ti do una mano.");
+    btn.disabled = false;
+    $("qNext").hidden = false;
+    $("qContinue").textContent = qCorrect ? "Avanti" : "Fammi riprovare con un aiuto";
+  });
+  $("qContinue").addEventListener("click", () => {
+    $("explainShort").hidden = !qCorrect;
+    $("explainLong").hidden = qCorrect;
+    $("moreBtn").hidden = !qCorrect;
+    go(qCorrect ? "ask" : "cloze");
+  });
+  $("askNo").addEventListener("click", () => go("explain"));
+  $("askYes").addEventListener("click", () => openCheck());
+  $("moreBtn").addEventListener("click", () => { $("explainLong").hidden = false; $("moreBtn").hidden = true; });
+
+  // Step 3: cloze
+  function checkWord(input, fb, next, onOk) {
+    const v = input.value.trim().toLowerCase().replace(/[^a-z]/g, "");
+    fb.hidden = false;
+    if (v === "gate" || v === "gates") {
+      fb.className = "feedback ok"; fb.textContent = "Sì: gate. L'hai sentita tre volte nell'annuncio."; next.hidden = false; onOk?.();
+    } else if (v === "get" || v === "gheit" || v === "geit" || v === "gait") {
+      fb.className = "feedback no"; fb.textContent = v === "get" ? "Quasi! Suona simile, ma ha la «ei» lunga e si scrive diversamente." : "L'hai sentita giusta! Ora prova a scriverla in inglese: 4 lettere, finisce con -ate.";
+    } else {
+      fb.className = "feedback no"; fb.textContent = "Non è questa. Riascolta: viene subito prima di «change».";
+    }
+  }
+  $("checkC").addEventListener("click", () => checkWord($("cAnswer"), $("cFeedback"), $("cNext"), () => {
+    document.querySelectorAll(".cloze .blank").forEach(b => b.textContent = "gate");
+  }));
+  $("cAnswer").addEventListener("keydown", e => { if (e.key === "Enter") $("checkC").click(); });
+
+  // Step 6: speak
+  $("speakBtn").addEventListener("click", () => {
+    if (!dictation) {
+      const fb = $("sFeedback"); fb.hidden = false; fb.className = "feedback ok";
+      fb.textContent = "Dilla tre volte ad alta voce, poi premi «Prima riascolta» e confronta: senti la «ei» lunga?";
+      return;
+    }
+    subscribe();
+    startDictation($("speakBtn"), (text, final) => {
+      $("heard").textContent = text ? "Ho sentito: «" + text + "»" : "";
+      if (!final) return;
+      const w = text.toLowerCase();
+      const fb = $("sFeedback"); fb.hidden = false;
+      if (/\bgates?\b/.test(w)) { fb.className = "feedback ok"; fb.textContent = "Perfetto: ti ho capito. La pronuncia è chiara."; dictation.stop(); }
+      else if (/\b(get|got|gay|guest|great|kate|gait)\b/.test(w)) { fb.className = "feedback no"; fb.textContent = "Ho capito «" + text.trim() + "». Allunga la vocale: g-EI-t, come in «hey»."; }
+      else { fb.className = "feedback no"; fb.textContent = "Non ti ho capito bene. Riascolta e riprova, con calma."; }
+    });
+  });
+
+  // Step 6b: read whole sentences, scored by Azure word by word (pronuncia.js)
+  const SENTENCES = {
+    past: { en: "Yesterday we waited at the wrong gate for an hour.", it: "Ieri abbiamo aspettato al gate sbagliato per un'ora." },
+    present: { en: "Excuse me, where is gate twenty-seven?", it: "Scusi, dov'è il gate ventisette?" },
+    future: { en: "Boarding will start at gate nine in ten minutes.", it: "L'imbarco inizierà al gate nove tra dieci minuti." },
+  };
+  let tense = "past";
+  const norm = w => w.toLowerCase().replace(/[^a-z']/g, "");
+  // Match Azure's words to the sentence's tokens (Azure may split "twenty-seven", or add extra words)
+  function align(text, words) {
+    const list = (words || []).filter(w => w.error !== "Insertion");
+    let j = 0;
+    return text.split(" ").map(tok => {
+      const t = norm(tok); let got = ""; const used = [];
+      while (j < list.length && got.length < t.length) { got += norm(list[j].word); used.push(list[j]); j++; }
+      if (!used.length) return null;
+      return { score: Math.min(...used.map(u => u.score)), error: used.find(u => u.error === "Omission")?.error || "None", word: tok.replace(/[^\w'-]/g, ""), phonemes: used.flatMap(u => u.phonemes) };
+    });
+  }
+  function renderSentence(words) {
+    const box = $("rSentence"); box.textContent = "";
+    const aligned = words ? align(SENTENCES[tense].en, words) : [];
+    SENTENCES[tense].en.split(" ").forEach((tok, i) => {
+      const sp = document.createElement("span"); sp.textContent = tok;
+      if (/^gates?\W*$/i.test(tok)) sp.classList.add("key");
+      const w = aligned[i];
+      if (w) sp.classList.add(w.error === "Omission" || w.score < 60 ? "bad" : w.score < 80 ? "mid" : "good");
+      box.appendChild(sp);
+    });
+    $("rItalian").textContent = SENTENCES[tense].it;
+  }
+  function pronError(err) {
+    const e = $("rError"); e.hidden = false;
+    e.textContent = err?.code === "login" ? "Per il voto della pronuncia devi essere entrato con il tuo account."
+      : err?.code === "mic" ? "Il browser non mi lascia usare il microfono. Permettilo dall'icona accanto all'indirizzo e riprova."
+      : err?.code === "nomatch" ? "Non ho sentito niente. Avvicinati al microfono e leggi dopo aver premuto."
+      : /429/.test(err?.message) ? "Per oggi hai usato tutte le prove di pronuncia. Riprendi domani!"
+      : "Il controllo della pronuncia non risponde. Riprova tra poco.";
+  }
+  document.querySelectorAll("[data-tense]").forEach(b => b.addEventListener("click", () => {
+    tense = b.dataset.tense;
+    document.querySelectorAll("[data-tense]").forEach(x => x.setAttribute("aria-selected", x === b));
+    $("rResult").hidden = true; $("rError").hidden = true; renderSentence();
+  }));
+  $("rListen").addEventListener("click", async () => {
+    const btn = $("rListen"); $("rError").hidden = true;
+    try { btn.classList.add("playing"); const a = await window.Pronuncia.speak(SENTENCES[tense].en); a.onended = () => btn.classList.remove("playing"); }
+    catch (err) { btn.classList.remove("playing"); pronError(err); }
+  });
+  let reading = false;
+  $("rSpeak").addEventListener("click", async () => {
+    if (reading || !window.Pronuncia) return;
+    const btn = $("rSpeak"); reading = true; btn.disabled = true; btn.textContent = "Preparo il microfono…";
+    $("rError").hidden = true; $("rResult").hidden = true;
+    try {
+      const r = await window.Pronuncia.assess(SENTENCES[tense].en, { onListening: () => { btn.textContent = "Ti ascolto… leggi ora"; btn.classList.add("on"); } });
+      renderSentence(r.words);
+      const n = r.pron;
+      $("rVerdict").textContent = n >= 85 ? "Ottimo, si capisce benissimo" : n >= 70 ? "Ti ho capito bene" : n >= 50 ? "Ci sei quasi" : "Riproviamo con calma";
+      $("rScore").innerHTML = `${n}<small>/100</small>`;
+      const weak = align(SENTENCES[tense].en, r.words).filter(Boolean).filter(w => w.error === "Omission" || w.score < 80).sort((a, b) => a.score - b.score).slice(0, 3);
+      $("rTips").innerHTML = "";
+      weak.forEach(w => { const li = document.createElement("li"); li.className = w.score < 60 || w.error === "Omission" ? "bad" : ""; li.textContent = window.Pronuncia.tipFor(w); $("rTips").appendChild(li); });
+      if (!weak.length) $("rTips").innerHTML = "<li>Tutte le parole chiare. Prova un altro tempo verbale.</li>";
+      $("rDetail").textContent = `Precisione ${r.accuracy} · Scorrevolezza ${r.fluency} · Completezza ${r.completeness}` + (r.prosody != null ? ` · Intonazione ${r.prosody}` : "");
+      $("rResult").hidden = false;
+      const best = load().speak || {};
+      save({ speak: { ...best, [tense]: Math.max(best[tense] || 0, n) } });
+    } catch (err) { pronError(err); }
+    reading = false; btn.disabled = false; btn.classList.remove("on"); btn.textContent = "🎙 Leggi di nuovo";
+  });
+  renderSentence();
+
+  // Step 7: Alex scene
+  const WORDS = [
+    ["Oh", .08, .24, 0, "o"], ["no,", .32, .56, 0, "o"], ["no,", .64, .88, 0, "o"], ["no!", .96, 1.36, 0, "o"],
+    ["The", 1.52, 1.60], ["gate", 1.68, 1.84, 1], ["is", 1.92, 2.00], ["closing!", 2.24, 2.68],
+    ["Wait!", 2.88, 3.28], ["Please…", 3.44, 4.04], ["wait", 4.08, 4.24], ["for", 4.32, 4.40], ["me!", 4.56, 5.04]
+  ];
+  const END = 5.04, CLOSE_START = 2.24, CLOSE_END = 5.0, STOP_RUN = 4.7, TAIL = 6;
+  const X0 = 130, X1 = 560, HIP = 436, SCALE = .355, DROP = 160;
+  const AT = { legB: [-14, -5], legA: [10, -5], torso: [0, 12], head: [-20, -245], armB: [-20, -200], armA: [10, -195] };
+  const MOUTH_AT = { happy: [345, 290], panic: [329, 292], shock: [334, 297], sad: [301, 305] };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ns = "http://www.w3.org/2000/svg";
+  const mk = (tag, a, p) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const easeOut = p => 1 - Math.pow(1 - clamp(p), 3);
+  const tr = (n, s) => n.setAttribute("transform", s);
+  const port = $("portcullis");
+  for (let x = 722; x <= 889; x += 27.8) {
+    mk("rect", { x: x - 7, y: 140, width: 14, height: 296, rx: 3, fill: "#6b4526", stroke: "#3b2412", "stroke-width": 2 }, port);
+    mk("path", { d: `M${x - 7} 436 L${x + 7} 436 L${x} 452 Z`, fill: "#4a2e17" }, port);
+  }
+  for (let y = 170; y < 430; y += 52) mk("rect", { x: 712, y, width: 186, height: 12, rx: 3, fill: "#7a5230", stroke: "#3b2412", "stroke-width": 2 }, port);
+  const caps = $("captions");
+  WORDS.forEach(([w, , , key]) => { const s = document.createElement("span"); s.textContent = w; if (key) s.classList.add("key"); caps.appendChild(s); });
+  const spans = [...caps.children];
+  const P = Object.fromEntries(["puppet", "legA", "legB", "armA", "armB", "torso", "head", "sweat"].map(id => [id, $(id)]));
+  const mouths = [...document.querySelectorAll(".mouth")], faces = [...document.querySelectorAll(".face")];
+  const voice = $("voice");
+  let voiceOK = false, running = false, startedAt = 0, raf = 0;
+  voice.addEventListener("canplaythrough", () => { voiceOK = true; });
+  const now = () => !running ? 0 : (voiceOK && !voice.paused && !voice.ended ? voice.currentTime : (performance.now() - startedAt) / 1000);
+  function loud(t) {
+    if (!running || t > END + .1) return 0;
+    const w = WORDS.find(([, a, b]) => t >= a && t <= b);
+    if (!w) return 0;
+    const p = (t - w[1]) / (w[2] - w[1]);
+    return .35 + .65 * Math.abs(Math.sin(p * Math.PI * Math.max(1, Math.round((w[2] - w[1]) / .12))));
+  }
+  const expr = t => !running ? "happy" : t >= CLOSE_END ? "sad" : (t >= 1.6 && t < 2.3) ? "shock" : "panic";
+  const place = (id, rot, dx = 0, dy = 0) => tr(P[id], `translate(${AT[id][0] + dx} ${AT[id][1] + dy}) rotate(${rot.toFixed(1)})`);
+  function draw(t) {
+    spans.forEach((s, i) => { const [, a, b] = WORDS[i]; s.classList.toggle("said", !running || t > b); s.classList.toggle("now", running && t >= a && t <= b); });
+    const run = running ? clamp(1 - (t - STOP_RUN) / .4) : 0, phase = t * 11, slump = clamp((t - CLOSE_END) / .4);
+    const x = X0 + (X1 - X0) * easeOut(t / STOP_RUN), bob = -Math.abs(Math.sin(phase)) * 10 * run;
+    tr(P.puppet, `translate(${x.toFixed(1)} ${(HIP + bob).toFixed(1)}) scale(${SCALE}) rotate(${(7 * run - 3 * slump).toFixed(1)})`);
+    const sw = Math.sin(phase) * 30 * run;
+    place("legA", -sw, 0, Math.max(0, Math.cos(phase)) * -8 * run);
+    place("legB", sw, 0, Math.max(0, -Math.cos(phase)) * -8 * run);
+    place("armA", sw * 1.2 - slump * 8); place("armB", -sw * 1.1);
+    place("torso", Math.sin(phase * 2) * 1.5 * run);
+    let h = Math.sin(phase * 2) * 2 * run + slump * 12;
+    if (running && t > .08 && t < 1.4 && !reduce) h += Math.sin(t * 22) * 8;
+    place("head", h);
+    const e = expr(t); faces.forEach(f => f.setAttribute("visibility", f.dataset.expr === e ? "visible" : "hidden"));
+    const l = loud(t), w = WORDS.find(([, a, b]) => t >= a && t <= b);
+    const shape = l < .12 ? "closed" : (w && w[4] === "o") ? "o" : l < .45 ? "half" : "open";
+    const [mx, my] = MOUTH_AT[e];
+    mouths.forEach(m => { m.setAttribute("x", mx - 296); m.setAttribute("y", my - 372); m.setAttribute("visibility", shape !== "closed" && m.dataset.shape === shape ? "visible" : "hidden"); });
+    P.sweat.setAttribute("opacity", running && t < CLOSE_END ? (.6 + .4 * Math.sin(t * 9)).toFixed(2) : 0);
+    $("signGlow").setAttribute("opacity", (t >= 1.6 && t <= 3.2 ? clamp(1 - Math.abs((t - 2) / 1.2)) : 0).toFixed(2));
+    $("ipaTag").classList.toggle("on", running && t >= 1.68);
+    tr(port, `translate(0 ${(-DROP + DROP * easeOut((t - CLOSE_START) / (CLOSE_END - CLOSE_START))).toFixed(1)})`);
+    if (!reduce) {
+      let sx = 0, sy = 0;
+      if (running && t < 1.4) { sx = Math.sin(t * 61) * 3; sy = Math.cos(t * 47) * 2; }
+      const thud = t > CLOSE_END && t < CLOSE_END + .35 ? (1 - (t - CLOSE_END) / .35) * 8 : 0;
+      sy += Math.sin(t * 90) * thud;
+      $("cam").style.transform = `translate(${sx}px,${sy}px) scale(${1 + .05 * clamp(t / END)})`;
+    }
+  }
+  function frame() { const t = now(); draw(t); if (t < TAIL) raf = requestAnimationFrame(frame); }
+  function playScene() {
+    cancelAnimationFrame(raf); stopAudio();
+    $("sceneStart").hidden = true; running = true; startedAt = performance.now();
+    if (voiceOK) { voice.currentTime = 0; voice.play().catch(() => { startedAt = performance.now(); }); }
+    raf = requestAnimationFrame(frame);
+  }
+  $("sceneStart").addEventListener("click", playScene);
+  $("sceneReplay").addEventListener("click", playScene);
+  draw(0);
+
+  // Step 8: in-app player for the four situations
+  const clips = [...document.querySelectorAll(".clip")];
+  let clipIdx = -1, chain = false;
+  resetClips = () => { chain = false; clipIdx = -1; clips.forEach(c => c.classList.remove("playing")); $("playAll").classList.remove("playing"); };
+  function playClip(i) {
+    stopAudio(); clips.forEach(c => c.classList.remove("playing"));
+    clipIdx = i; const c = clips[i]; if (!c) { chain = false; $("playAll").classList.remove("playing"); return; }
+    c.classList.add("playing");
+    player.src = c.dataset.src; player.currentTime = 0; player.play().catch(() => {});
+  }
+  player.addEventListener("ended", () => {
+    if (clipIdx < 0) return;
+    clips[clipIdx]?.classList.remove("playing");
+    if (chain) setTimeout(() => chain && playClip(clipIdx + 1), 900); else clipIdx = -1;
+  });
+  clips.forEach((c, i) => {
+    c.querySelector(".cbtn").addEventListener("click", () => {
+      chain = false; $("playAll").classList.remove("playing");
+      if (c.classList.contains("playing")) { player.pause(); c.classList.remove("playing"); clipIdx = -1; } else playClip(i);
+    });
+    c.querySelector(".show").addEventListener("click", e => {
+      const t = c.querySelector(".ctext"); t.hidden = !t.hidden; e.currentTarget.textContent = t.hidden ? "Mostra il testo" : "Nascondi";
+    });
+  });
+  $("playAll").addEventListener("click", () => {
+    if (chain) { chain = false; player.pause(); clips.forEach(c => c.classList.remove("playing")); $("playAll").classList.remove("playing"); clipIdx = -1; return; }
+    chain = true; $("playAll").classList.add("playing"); playClip(0);
+  });
+
+  // "La conosco": two quick proofs. 1) meaning, word alone; 2) read a sentence aloud.
+  // Both passed: counts as learned, comes back once after a week. One failed: the full path.
+  let checkPassed = false;
+  function openCheck() {
+    $("kMeaning").value = ""; ["mFeedback", "partTwo", "pFeedback", "kNext"].forEach(id => $(id).hidden = true);
+    $("kHeard").textContent = ""; $("kSelf").hidden = false; $("kSpeak").hidden = !dictation && !window.Pronuncia?.available();
+    $("kSelf").textContent = dictation ? "Il microfono non va: l'ho letta" : "L'ho letta ad alta voce"; checkPassed = false;
+    go("quick");
+  }
+  $("knowBtn").addEventListener("click", openCheck);
+  const MEANING = /(uscit|imbarco|cancell|portone|porta|varco|exit|door|boarding|ingresso|entrance)/i;
+  $("checkMeaning").addEventListener("click", () => {
+    const ans = $("kMeaning").value.trim(); const fb = $("mFeedback"); fb.hidden = false;
+    if (!ans) { fb.className = "feedback no"; fb.textContent = "Scrivi o di' cosa vuol dire, anche una parola sola."; return; }
+    if (MEANING.test(ans)) {
+      fb.className = "feedback ok"; fb.textContent = "Giusto: l'uscita d'imbarco, o un cancello. Ora la pronuncia.";
+      $("partTwo").hidden = false;
+    } else {
+      fb.className = "feedback no"; fb.textContent = "Non proprio: il gate è l'uscita d'imbarco. La impariamo insieme.";
+      finishCheck(false);
+    }
+  });
+  function sentenceScore(said) {
+    const norm = s => s.toLowerCase().replace(/[^a-z' ]/g, " ").split(/\s+/).filter(Boolean);
+    const target = norm($("kSentence").textContent), heard = new Set(norm(said));
+    const hit = target.filter(w => heard.has(w)).length;
+    return { ratio: hit / target.length, gate: heard.has("gate") || heard.has("gates") };
+  }
+  $("kSpeak").addEventListener("click", async () => {
+    // With an account: Azure scores the reading. Pass = "gate" clear and the sentence mostly clear.
+    if (window.Pronuncia?.available()) {
+      const btn = $("kSpeak"), fb = $("pFeedback"); btn.disabled = true; btn.textContent = "Preparo il microfono…";
+      const sentence = $("kSentence").textContent;
+      try {
+        const r = await window.Pronuncia.assess(sentence, { onListening: () => { btn.textContent = "Ti ascolto… leggi ora"; } });
+        const g = align(sentence, r.words).find(w => w && /^gates?$/i.test(w.word));
+        $("kHeard").textContent = "Ho sentito: «" + r.heard + "»";
+        fb.hidden = false;
+        if (g && g.score >= 60 && r.pron >= 60 && r.completeness >= 70) { fb.className = "feedback ok"; fb.textContent = `Ti ho capito bene: ${r.pron}/100.`; finishCheck(true); }
+        else if (!g || g.score < 60) { fb.className = "feedback no"; fb.textContent = "«gate» non era chiara. Riprova: g-EI-t, con la «ei» lunga."; }
+        else { fb.className = "feedback no"; fb.textContent = `«gate» va bene, ma la frase è al ${r.pron}/100. ` + (align(sentence, r.words).filter(w => w && w.score < 60).slice(0, 2).map(w => window.Pronuncia.tipFor(w)).join(" ") || "Riprova più lentamente."); }
+      } catch (err) { fb.hidden = false; fb.className = "feedback no"; fb.textContent = "Il controllo della pronuncia non risponde. Usa «L'ho letta ad alta voce» o riprova."; }
+      btn.disabled = false; btn.textContent = "🎙 Leggi di nuovo";
+      return;
+    }
+    if (!dictation) return;
+    subscribe();
+    startDictation($("kSpeak"), (text, final) => {
+      $("kHeard").textContent = text ? "Ho sentito: «" + text + "»" : "";
+      if (!final) return;
+      const { ratio, gate } = sentenceScore(text); const fb = $("pFeedback"); fb.hidden = false;
+      if (gate && ratio >= .7) { fb.className = "feedback ok"; fb.textContent = "Ti ho capito bene: " + Math.round(ratio * 100) + "% delle parole chiare."; dictation.stop(); finishCheck(true); }
+      else if (!gate) { fb.className = "feedback no"; fb.textContent = "Non ho capito «gate». Riprova: g-EI-t, con la «ei» lunga."; }
+      else { fb.className = "feedback no"; fb.textContent = "Ho capito «gate», ma solo il " + Math.round(ratio * 100) + "% della frase. Riprova più lentamente."; }
+    });
+  });
+  $("kSelf").addEventListener("click", () => finishCheck(true));
+  function finishCheck(ok) {
+    checkPassed = ok;
+    if (ok) save({ known: Date.now() });
+    $("kNext").hidden = false;
+    $("kContinue").textContent = ok ? "La conosci: vai alla fine" : "Facciamo il percorso";
+  }
+  $("kContinue").addEventListener("click", () => {
+    if (checkPassed) go("done");
+    else { $("explainShort").hidden = true; $("explainLong").hidden = false; $("moreBtn").hidden = true; go("explain"); }
+  });
+
+  // Review plan: saved in this browser and, once logged in, on the account (account.js)
+  function load() {
+    if (window.Account) return window.Account.load("gate");
+    try { return JSON.parse(localStorage.getItem("gate-progress") || "{}"); } catch (e) { return {}; }
+  }
+  function save(obj) {
+    const data = { ...load(), ...obj };
+    if (window.Account) window.Account.save("gate", data);
+    else try { localStorage.setItem("gate-progress", JSON.stringify(data)); } catch (e) {}
+  }
+  // Already known: one check after a week, then long gaps. Each slot uses a different review set.
+  function schedule(st) {
+    const days = st.known ? [7, 30, 90, 180] : [1, 3, 7, 21];
+    const sets = st.known ? ["7", "21", "3", "1"] : ["1", "3", "7", "21"];
+    const start = st.done || Date.now();
+    return days.map((d, i) => ({ day: d, set: sets[i], at: start + d * 864e5, did: !!st.reviews?.[d] }));
+  }
+  const fmt = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numeric", month: "short" });
+  function renderPlan() {
+    const st = load(); if (!st.done) save({ done: Date.now() });
+    const plan = $("plan"); plan.innerHTML = "";
+    schedule(load()).forEach(s => {
+      const due = !s.did && Date.now() >= s.at;
+      const b = document.createElement("button"); b.type = "button";
+      b.className = s.did ? "did" : due ? "due" : "";
+      b.innerHTML = `<b>+${s.day}</b><span>${s.day === 1 ? "giorno" : "giorni"} · ${fmt.format(new Date(s.at))}</span><em>${s.did ? "✓ fatto" : due ? "da fare oggi" : "prova ora"}</em>`;
+      b.addEventListener("click", () => openReview(s));
+      plan.appendChild(b);
+    });
+  }
+  function updateBanner() {
+    const st = load();
+    const due = st.done ? schedule(st).find(s => !s.did && Date.now() >= s.at) : null;
+    $("dueBanner").hidden = !due || current === "review";
+    if (due) { $("dueSub").textContent = `Ripasso del ${due.day}° giorno · circa 3 minuti`; $("dueGo").onclick = () => openReview(due); }
+  }
+  document.addEventListener("account:ready", updateBanner);
+
+  // ---- Review sessions ----
+  let wordData = null;
+  const getWord = () => wordData ??= fetch("data/words/gate.json").then(r => r.json()).catch(e => { wordData = null; throw e; });
+  let rvSlot = null;
+  const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); kids.forEach(k => e.append(k)); return e; };
+  const hasAny = (text, group) => group.some(t => text.toLowerCase().includes(t.toLowerCase()));
+
+  async function openReview(slot) {
+    rvSlot = slot; go("review"); $("dueBanner").hidden = true;
+    $("rvItems").innerHTML = ""; $("rvError").hidden = true;
+    $("rvEyebrow").textContent = `Ripasso · ${slot.day}° giorno` + (Date.now() < slot.at ? " · anteprima" : "");
+    let data;
+    try { data = await getWord(); } catch { $("rvError").hidden = false; $("rvError").textContent = "Non riesco a caricare il ripasso. Controlla la connessione e riprova."; return; }
+    const set = data.reviews[slot.set];
+    $("rvTitle").textContent = set.title; $("rvIntro").textContent = set.intro;
+    if (!window.Pronuncia?.available()) { $("rvError").hidden = false; $("rvError").textContent = "Per sentire le voci e il voto della pronuncia devi essere entrato con il tuo account."; }
+    set.items.forEach(item => $("rvItems").appendChild(({ listen: rvListen, dialogue: rvListen, read: rvRead, pairs: rvPairs })[item.type](item)));
+  }
+  $("rvBack").addEventListener("click", () => { window.Pronuncia?.stop(); go("done"); });
+  $("rvDone").addEventListener("click", () => {
+    window.Pronuncia?.stop();
+    if (rvSlot && Date.now() >= rvSlot.at) save({ reviews: { ...(load().reviews || {}), [rvSlot.day]: Date.now() } });
+    go("done"); updateBanner();
+  });
+  function voiceError(box, err) {
+    let f = box.querySelector(".feedback.err");
+    if (!f) { f = el("p", { className: "feedback no err" }); box.append(f); }
+    f.textContent = err?.code === "login" ? "Entra con il tuo account per sentire le voci." : "La voce non risponde. Riprova tra poco.";
+  }
+
+  // Announcement or dialogue: listen without text, answer a question, then see the text.
+  function rvListen(item) {
+    const lines = item.lines || [{ voice: item.voice, text: item.text, it: item.it }];
+    const box = el("div", { className: "rv-item" });
+    const play = el("button", { className: "play gold", type: "button", textContent: item.lines ? "Ascolta il dialogo" : "Ascolta l'annuncio" });
+    const textBox = el("div", { className: "rv-text", hidden: true });
+    const rows = lines.map(l => { const p = el("p"); if (l.who) p.append(el("span", { className: "who", textContent: l.who + " · " })); p.append(el("em", { textContent: l.text }), el("br"), el("span", { className: "muted", textContent: l.it })); return p; });
+    textBox.append(...rows);
+    const show = el("button", { type: "button", className: "show", textContent: "Mostra il testo" });
+    show.addEventListener("click", () => { textBox.hidden = !textBox.hidden; show.textContent = textBox.hidden ? "Mostra il testo" : "Nascondi il testo"; });
+    let playing = false;
+    play.addEventListener("click", async () => {
+      if (playing) { playing = false; window.Pronuncia.stop(); return; }
+      playing = true; play.classList.add("playing");
+      try {
+        for (let i = 0; i < lines.length && playing; i++) {
+          rows.forEach((r, j) => r.classList.toggle("now", j === i));
+          await window.Pronuncia.finished(await window.Pronuncia.speak(lines[i].text, lines[i].voice));
+          if (playing && i < lines.length - 1) await new Promise(r => setTimeout(r, 350));
+        }
+      } catch (err) { voiceError(box, err); }
+      playing = false; play.classList.remove("playing"); rows.forEach(r => r.classList.remove("now"));
+    });
+    const q = el("p", { innerHTML: `<b>${item.question}</b>` });
+    const ta = el("textarea", { placeholder: "Rispondi in italiano o in inglese", ariaLabel: item.question });
+    const check = el("button", { type: "button", className: "primary", textContent: "Controlla" });
+    const fb = el("p", { className: "feedback", hidden: true });
+    let tries = 0;
+    check.addEventListener("click", () => {
+      const a = ta.value.trim(); if (!a) { ta.focus(); return; }
+      tries++;
+      const ok = item.accept.every(g => hasAny(a, g));
+      fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no");
+      fb.textContent = ok ? "Esatto. " + item.answer : tries < 2 ? "Non ancora: riascolta e riprova." : "Ecco la risposta: " + item.answer;
+      if (ok || tries >= 2) { textBox.hidden = false; show.textContent = "Nascondi il testo"; }
+    });
+    box.append(el("div", { className: "row" }, play, show), textBox, q, ta, el("div", { className: "row" }, check), fb);
+    return box;
+  }
+
+  // A new sentence to read aloud, scored by Azure word by word.
+  function rvRead(item) {
+    const box = el("div", { className: "rv-item" });
+    const sentence = el("p", { className: "sentence" });
+    const paint = words => {
+      sentence.innerHTML = ""; const al = words ? align(item.text, words) : [];
+      item.text.split(" ").forEach((tok, i) => {
+        const sp = el("span", { textContent: tok });
+        if (/^gates?\W*$/i.test(tok)) sp.classList.add("key");
+        const w = al[i]; if (w) sp.classList.add(w.error === "Omission" || w.score < 60 ? "bad" : w.score < 80 ? "mid" : "good");
+        sentence.append(sp);
+      });
+    };
+    paint();
+    const listen = el("button", { type: "button", className: "play", textContent: "Ascolta" });
+    listen.addEventListener("click", async () => { try { await window.Pronuncia.speak(item.text); } catch (err) { voiceError(box, err); } });
+    const speak = el("button", { type: "button", className: "gold", textContent: "🎙 Leggi ad alta voce" });
+    const res = el("div", { className: "score", hidden: true });
+    speak.addEventListener("click", async () => {
+      speak.disabled = true; speak.textContent = "Preparo il microfono…"; res.hidden = true;
+      try {
+        const r = await window.Pronuncia.assess(item.text, { onListening: () => { speak.textContent = "Ti ascolto… leggi ora"; } });
+        paint(r.words);
+        const weak = align(item.text, r.words).filter(w => w && (w.error === "Omission" || w.score < 80)).sort((a, b) => a.score - b.score).slice(0, 2);
+        res.innerHTML = "";
+        res.append(el("div", { className: "row", style: "justify-content:space-between;align-items:baseline" }, el("b", { textContent: r.pron >= 85 ? "Ottimo" : r.pron >= 70 ? "Ti ho capito bene" : r.pron >= 50 ? "Ci sei quasi" : "Riproviamo con calma" }), el("span", { className: "big", innerHTML: `${r.pron}<small>/100</small>` })));
+        const ul = el("ul", { className: "tips" });
+        (weak.length ? weak.map(w => window.Pronuncia.tipFor(w)) : ["Tutte le parole chiare."]).forEach(t => ul.append(el("li", { textContent: t })));
+        res.append(ul); res.hidden = false;
+      } catch (err) { const f = el("p", { className: "feedback no", textContent: err?.code === "mic" ? "Permetti il microfono e riprova." : err?.code === "nomatch" ? "Non ho sentito niente: leggi dopo aver premuto." : err?.code === "login" ? "Entra con il tuo account per il voto." : "Il controllo non risponde. Riprova tra poco." }); res.replaceChildren(f); res.hidden = false; }
+      speak.disabled = false; speak.textContent = "🎙 Leggi di nuovo";
+    });
+    box.append(el("h3", { textContent: "Leggi ad alta voce" }), sentence, el("p", { className: "muted", textContent: item.it }), el("div", { className: "row" }, listen, speak), res);
+    return box;
+  }
+
+  // Minimal pairs: which of these similar words did you hear? Different voices each round.
+  function rvPairs(item) {
+    const box = el("div", { className: "rv-item" });
+    const status = el("p", { className: "muted" });
+    const play = el("button", { type: "button", className: "play gold", textContent: "Ascolta la parola" });
+    const opts = el("div", { className: "opts" });
+    const fb = el("p", { className: "feedback", hidden: true });
+    let round = 0, right = 0, word = null, voice = null, answered = false;
+    const pick = a => a[Math.floor(Math.random() * a.length)];
+    // The target comes up in about half the rounds, so you really have to listen.
+    const next = () => {
+      round++; answered = false; word = Math.random() < .5 ? item.target : pick(item.options.filter(o => o !== item.target)); voice = pick(item.voices);
+      status.textContent = `Parola ${round} di ${item.rounds}`; fb.hidden = true;
+      opts.querySelectorAll("button").forEach(b => { b.className = ""; b.disabled = false; });
+    };
+    play.addEventListener("click", async () => { try { await window.Pronuncia.speak(word, voice); } catch (err) { voiceError(box, err); } });
+    item.options.forEach(o => {
+      const b = el("button", { type: "button", textContent: o });
+      b.addEventListener("click", () => {
+        if (answered) return; answered = true;
+        const ok = o === word; if (ok) right++;
+        b.className = ok ? "right" : "wrong";
+        opts.querySelectorAll("button").forEach(x => { x.disabled = true; if (x.textContent === word) x.className = "right"; });
+        fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no");
+        fb.textContent = (ok ? "Sì, era «" : "Era «") + word + "». ";
+        if (round < item.rounds) { const n = el("button", { type: "button", className: "primary", textContent: "Prossima" }); n.addEventListener("click", next); fb.append(n); }
+        else fb.append(`Risultato: ${right} su ${item.rounds}. ` + item.answer);
+      });
+      opts.append(b);
+    });
+    next();
+    box.append(el("h3", { textContent: "Quale parola senti?" }), status, el("div", { className: "row" }, play), opts, fb);
+    return box;
+  }
+  $("restart").addEventListener("click", () => {
+    ["qAnswer", "cAnswer"].forEach(id => $(id).value = "");
+    ["qFeedback", "cFeedback", "sFeedback", "qNext", "cNext"].forEach(id => $(id).hidden = true);
+    $("heard").textContent = ""; listens = 0; $("listenCount").textContent = "";
+    document.querySelectorAll(".cloze .blank").forEach(b => b.textContent = "…");
+    running = false; $("sceneStart").hidden = false; draw(0);
+    go("listen");
+  });
+  go("listen");
+  updateBanner();
+  if (location.hash === "#ripasso") { const st = load(); const due = st.done && schedule(st).find(x => !x.did && Date.now() >= x.at); if (due) openReview(due); }
+})();
+</script>
+<script type="module" src="account.js"></script>
+<script type="module" src="pronuncia.js"></script>
+
+</body>
+</html>
