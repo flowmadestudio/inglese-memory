@@ -66,25 +66,36 @@ async function assess(reference, { onListening } = {}) {
 
 // The sentence read by a natural voice; cached so replays are free.
 const voiceCache = new Map();
-let voicePlayer = null;
-async function speak(text) {
-  let url = voiceCache.get(text);
+// One shared element, unlocked on the first tap, so Safari lets it play after the voice is fetched.
+const voicePlayer = new Audio();
+const SILENCE = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//OEwAAAAAAAAAAAAEluZm8AAAAPAAAABQAAAqAAbW1tbW1tbW1tbW1tbW1tbW1tbZKSkpKSkpKSkpKSkpKSkpKSkpKStra2tra2tra2tra2tra2tra2trbb29vb29vb29vb29vb29vb29vb2///////////////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQEUAAAAAAAAAKgvT9A1gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//NExAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMu//NExFMAAANIAAAAADEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMu//NExKYAAANIAAAAADEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NExKwAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NExKwAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+let unlocked = false;
+function unlock() { if (unlocked) return; unlocked = true; voicePlayer.src = SILENCE; voicePlayer.play().catch(() => {}); }
+
+async function speak(text, voice = VOICE) {
+  unlock(); // must run synchronously inside the tap
+  const key = voice + "|" + text;
+  let url = voiceCache.get(key);
   if (!url) {
     const { SDK, cfg } = await config();
-    cfg.speechSynthesisVoiceName = VOICE;
+    cfg.speechSynthesisVoiceName = voice;
     cfg.speechSynthesisOutputFormat = SDK.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
     const synth = new SDK.SpeechSynthesizer(cfg, null);
     const result = await new Promise((res, rej) => synth.speakTextAsync(text, res, rej));
     synth.close();
     if (result.reason !== SDK.ResultReason.SynthesizingAudioCompleted) throw new Error("tts");
     url = URL.createObjectURL(new Blob([result.audioData], { type: "audio/mpeg" }));
-    voiceCache.set(text, url);
+    voiceCache.set(key, url);
   }
-  voicePlayer?.pause();
-  voicePlayer = new Audio(url);
+  voicePlayer.pause();
+  voicePlayer.src = url;
+  voicePlayer.onended = null;
   await voicePlayer.play();
   return voicePlayer;
 }
+// Resolves when the current line has finished (or was stopped).
+const finished = p => new Promise(res => { if (p.ended || p.paused) return res(); p.onended = res; p.onpause = res; });
+function stop() { voicePlayer.pause(); }
 
 // Tips in Italian for the classic traps; anything else gets a generic hint from the sounds.
 const TIPS = {
@@ -115,5 +126,5 @@ function tipFor(w) {
   return worst && worst.score < 60 ? `«${w.word}»: il suono /${worst.ipa}/ non era chiaro. Ascoltala e ripeti piano.` : `«${w.word}»: ascoltala e ripeti piano.`;
 }
 
-window.Pronuncia = { assess, speak, tipFor, available: () => !!window.Account?.signedIn() };
+window.Pronuncia = { assess, speak, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
 document.dispatchEvent(new Event("pronuncia:ready"));

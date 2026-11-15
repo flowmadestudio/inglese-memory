@@ -1,0 +1,91 @@
+{
+  "word": "gate",
+  "ipa": "/ɡeɪt/",
+  "rank": 2060,
+  "meaning": "in aeroporto, la porta d'imbarco; in generale, un cancello",
+  "reviews": {
+    "1": {
+      "title": "L'ultima chiamata",
+      "intro": "Un annuncio che non hai mai sentito. Ascoltalo senza leggere.",
+      "items": [
+        {
+          "type": "listen",
+          "voice": "en-GB-SoniaNeural",
+          "text": "This is the final call for passenger Marco Bianchi, travelling to Dublin. Please go immediately to gate nine. The gate will close in five minutes.",
+          "it": "Ultima chiamata per il passeggero Marco Bianchi, in partenza per Dublino. Si rechi immediatamente al gate nove. Il gate chiuderà tra cinque minuti.",
+          "question": "Dove deve andare il passeggero, e quanto tempo ha?",
+          "accept": [["9", "nove", "nine"], ["5", "cinque", "five"]],
+          "answer": "Al gate 9, e ha 5 minuti prima che chiuda. «Final call» è l'ultima chiamata: quando la senti, si corre."
+        },
+        {
+          "type": "read",
+          "text": "Excuse me, is this the gate for Dublin?",
+          "it": "Scusi, è questo il gate per Dublino?"
+        }
+      ]
+    },
+    "3": {
+      "title": "Al banco del check-in",
+      "intro": "Alex fa il check-in e capisce male un numero. Ascolta il dialogo.",
+      "items": [
+        {
+          "type": "dialogue",
+          "lines": [
+            { "who": "Addetta", "voice": "en-US-JennyNeural", "text": "Here's your boarding pass. You're at gate fourteen, and boarding starts at ten forty.", "it": "Ecco la sua carta d'imbarco. È al gate quattordici, e l'imbarco inizia alle dieci e quaranta." },
+            { "who": "Alex", "voice": "en-GB-RyanNeural", "text": "Sorry, did you say gate forty?", "it": "Scusi, ha detto gate quaranta?" },
+            { "who": "Addetta", "voice": "en-US-JennyNeural", "text": "No, fourteen. One, four. And the gate closes twenty minutes before departure.", "it": "No, quattordici. Uno, quattro. E il gate chiude venti minuti prima della partenza." }
+          ],
+          "question": "Qual è il gate giusto? E perché Alex si è confuso?",
+          "accept": [["14", "quattordici", "fourteen"]],
+          "answer": "Gate 14. Alex ha capito «forty» (40) invece di «fourteen» (14). Il trucco è l'accento: four-TEEN lo ha alla fine, FOR-ty all'inizio."
+        },
+        {
+          "type": "read",
+          "text": "I ran to the gate, but it was already closed.",
+          "it": "Sono corso al gate, ma era già chiuso."
+        }
+      ]
+    },
+    "7": {
+      "title": "Alex e l'americano",
+      "intro": "Un viaggiatore americano parla veloce. Alex prova a stargli dietro.",
+      "items": [
+        {
+          "type": "dialogue",
+          "lines": [
+            { "who": "Viaggiatore", "voice": "en-US-GuyNeural", "text": "Hey buddy, they just switched our gate. We're boarding at B twelve now.", "it": "Ehi amico, ci hanno appena cambiato il gate. Adesso imbarchiamo al B dodici." },
+            { "who": "Alex", "voice": "en-GB-RyanNeural", "text": "Switched? You mean they changed the gate?", "it": "Switched? Vuoi dire che hanno cambiato il gate?" },
+            { "who": "Viaggiatore", "voice": "en-US-GuyNeural", "text": "Yeah, changed, switched, same thing. Come on, we gotta hurry!", "it": "Sì, cambiato, spostato, è uguale. Dai, dobbiamo sbrigarci!" }
+          ],
+          "question": "Cosa è successo al gate? E cosa vuol dire «switched»?",
+          "accept": [["cambi", "change", "switch", "spost", "b12", "b 12", "dodici"]],
+          "answer": "Hanno cambiato il gate: ora è il B12. «Switched» vuol dire «cambiato», come «changed»: gli americani lo usano tantissimo. «We gotta hurry» = dobbiamo sbrigarci."
+        },
+        {
+          "type": "read",
+          "text": "We'll meet at the gate after security.",
+          "it": "Ci vediamo al gate dopo i controlli."
+        }
+      ]
+    },
+    "21": {
+      "title": "Orecchio fino",
+      "intro": "Parole che suonano quasi uguali, dette da voci diverse. Quale senti?",
+      "items": [
+        {
+          "type": "pairs",
+          "target": "gate",
+          "options": ["gate", "get", "great", "date"],
+          "voices": ["en-GB-RyanNeural", "en-US-JennyNeural", "en-AU-NatashaNeural", "en-IE-EmilyNeural", "en-US-GuyNeural"],
+          "rounds": 5,
+          "answer": "«gate» /ɡeɪt/ ha la «ei» lunga. «get» è breve, «great» ha la r dopo la g, «date» comincia con la d."
+        },
+        {
+          "type": "read",
+          "text": "Sorry I'm late. Which gate is our flight?",
+          "it": "Scusa il ritardo. A quale gate è il nostro volo?"
+        }
+      ]
+    }
+  }
+}
