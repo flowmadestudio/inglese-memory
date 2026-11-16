@@ -252,8 +252,13 @@ a.gold { display: inline-block; font-weight: 800; text-decoration: none; border-
       const mk = (t, label, fn) => acts.append(Object.assign(el("button", { type: "button", textContent: t, ariaLabel: label, title: label }), { onclick: fn }));
       if (!isL) { if (i > 0) mk("↑", "Sposta su", () => move(i, -1)); mk("✓", "La so già", () => markKnown(id)); }
       mk("×", "Togli dalla coda", () => { const n = getQueue(); n.splice(i, 1); setQueue(n); render(); });
-      li.append(name, acts, el("small", { textContent: isL ? "imparata ✓" : (it.it ? it.it + " · " : "") + (it.trap ? "non «" + it.trap + "»" : LESSONS[id] ? "lezione pronta" : "lezione in preparazione") }));
-      if (!isL && LESSONS[id]) { li.style.cursor = "pointer"; name.onclick = () => location.href = LESSONS[id]; }
+      const small = el("small", { textContent: isL ? "imparata ✓" : (it.it ? it.it + " · " : "") + (it.trap ? "non «" + it.trap + "»" : LESSONS[id] ? "lezione pronta" : "lezione in preparazione") });
+      // Every lesson stays open: finished ones can be reviewed whenever you like.
+      if (LESSONS[id]) {
+        small.append(" · ", el("a", { href: LESSONS[id], textContent: isL ? "rivedi la lezione" : "apri", style: "color:inherit;font-weight:800" }));
+        li.style.cursor = "pointer"; name.onclick = () => location.href = LESSONS[id];
+      }
+      li.append(name, acts, small);
       ql.append(li);
     });
 
