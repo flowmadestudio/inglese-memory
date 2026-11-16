@@ -31,7 +31,35 @@ async function config() {
 }
 
 // Listen once to the learner reading `reference`; resolves with scores per sentence, word and sound.
-async function assess(reference, { onListening } = {}) {
+// Live microphone level (0..1) for the "listening" waves. Returns a stop function.
+async function meter(onLevel) {
+  let stream, ctx, raf;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    ctx = new (window.AudioContext || window.webkitAudioContext)(); await ctx.resume();
+    const an = ctx.createAnalyser(); an.fftSize = 512; ctx.createMediaStreamSource(stream).connect(an);
+    const buf = new Uint8Array(an.fftSize);
+    const tick = () => { an.getByteTimeDomainData(buf); let sum = 0; for (const v of buf) sum += (v - 128) ** 2; onLevel(Math.min(1, Math.sqrt(sum / buf.length) / 40)); raf = requestAnimationFrame(tick); };
+    tick();
+  } catch { onLevel(-1); } // no level available: the waves just pulse
+  return () => { cancelAnimationFrame(raf); stream?.getTracks().forEach(t => t.stop()); ctx?.close().catch(() => {}); };
+}
+// Run one recognition; control.stop() (set here) ends it early and rejects with code "stopped".
+function stoppable(rec, control) {
+  return new Promise((res, rej) => {
+    let over = false;
+    if (control) control.stop = () => { if (over) return; over = true; try { rec.close(); } catch {} rej(Object.assign(new Error("stopped"), { code: "stopped" })); };
+    rec.recognizeOnceAsync(r => { if (over) return; over = true; rec.close(); res(r); }, e => { if (over) return; over = true; try { rec.close(); } catch {} rej(e); });
+  });
+}
+// Wire the phases of a recognition to the page: listening, hearing speech, checking.
+function phases(rec, { onListening, onSpeech, onChecking } = {}) {
+  rec.sessionStarted = () => onListening?.();
+  rec.speechStartDetected = () => onSpeech?.();
+  rec.speechEndDetected = () => onChecking?.();
+}
+
+async function assess(reference, { onListening, onSpeech, onChecking, control } = {}) {
   const { SDK, cfg } = await config();
   cfg.speechRecognitionLanguage = "en-US";
   const audio = SDK.AudioConfig.fromDefaultMicrophoneInput();
@@ -40,9 +68,8 @@ async function assess(reference, { onListening } = {}) {
   try { pa.enableProsodyAssessment = true; } catch {}
   const rec = new SDK.SpeechRecognizer(cfg, audio);
   pa.applyTo(rec);
-  onListening?.();
-  const result = await new Promise((res, rej) => rec.recognizeOnceAsync(res, rej));
-  rec.close();
+  phases(rec, { onListening, onSpeech, onChecking });
+  const result = await stoppable(rec, control);
   if (result.reason === SDK.ResultReason.Canceled) {
     const det = SDK.CancellationDetails.fromResult(result);
     throw Object.assign(new Error(det.errorDetails || "canceled"), { code: /permission|NotAllowed|microphone/i.test(det.errorDetails || "") ? "mic" : "canceled" });
@@ -65,13 +92,12 @@ async function assess(reference, { onListening } = {}) {
 }
 
 // Free speech to text (no reference sentence): for "say it in English" and "remember the word".
-async function listen({ onListening, lang = "en-US" } = {}) {
+async function listen({ onListening, onSpeech, onChecking, control, lang = "en-US" } = {}) {
   const { SDK, cfg } = await config();
   cfg.speechRecognitionLanguage = lang;
   const rec = new SDK.SpeechRecognizer(cfg, SDK.AudioConfig.fromDefaultMicrophoneInput());
-  onListening?.();
-  const result = await new Promise((res, rej) => rec.recognizeOnceAsync(res, rej));
-  rec.close();
+  phases(rec, { onListening, onSpeech, onChecking });
+  const result = await stoppable(rec, control);
   if (result.reason === SDK.ResultReason.Canceled) {
     const det = SDK.CancellationDetails.fromResult(result);
     throw Object.assign(new Error(det.errorDetails || "canceled"), { code: /permission|NotAllowed|microphone/i.test(det.errorDetails || "") ? "mic" : "canceled" });
@@ -192,5 +218,5 @@ function tipFor(w) {
   return worst && worst.score < 60 ? `«${w.word}»: il suono /${worst.ipa}/ non era chiaro. Ascoltala e ripeti piano.` : `«${w.word}»: ascoltala e ripeti piano.`;
 }
 
-window.Pronuncia = { assess, listen, speak, speakTimed, chorus, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
+window.Pronuncia = { assess, listen, meter, speak, speakTimed, chorus, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
 document.dispatchEvent(new Event("pronuncia:ready"));
