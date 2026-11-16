@@ -8,17 +8,46 @@
   "listen": {
     "intro": "Tre voci diverse. In tutte c'è la stessa parola: non cercare di capire tutto, ascolta come suona.",
     "clips": [
-      { "voice": "en-GB-SoniaNeural", "label": "Voce 1", "text": "Every fingerprint is unique. No two people have the same one.", "it": "Ogni impronta digitale è unica. Non esistono due persone con la stessa." },
-      { "voice": "en-US-GuyNeural", "label": "Voce 2", "text": "This restaurant is unique. There's nothing like it in the whole city.", "it": "Questo ristorante è unico. Non c'è niente di simile in tutta la città." },
-      { "voice": "en-AU-NatashaNeural", "label": "Voce 3", "text": "Each snowflake has a unique shape.", "it": "Ogni fiocco di neve ha una forma unica." }
+      {
+        "voice": "en-GB-SoniaNeural",
+        "label": "Voce 1",
+        "text": "Every fingerprint is unique. No two people have the same one.",
+        "it": "Ogni impronta digitale è unica. Non esistono due persone con la stessa."
+      },
+      {
+        "voice": "en-US-GuyNeural",
+        "label": "Voce 2",
+        "text": "This restaurant is unique. There's nothing like it in the whole city.",
+        "it": "Questo ristorante è unico. Non c'è niente di simile in tutta la città."
+      },
+      {
+        "voice": "en-AU-NatashaNeural",
+        "label": "Voce 3",
+        "text": "Each snowflake has a unique shape.",
+        "it": "Ogni fiocco di neve ha una forma unica."
+      }
     ]
   },
   "question": {
     "text": "In the first one: can two people have the same fingerprint?",
     "it": "Nella prima voce: due persone possono avere la stessa impronta digitale?",
-    "accept": [["no", "non", "nessun", "never", "mai", "can't", "cannot", "impossib"]],
+    "accept": [
+      [
+        "no",
+        "non",
+        "nessun",
+        "never",
+        "mai",
+        "can't",
+        "cannot",
+        "impossib"
+      ]
+    ],
     "right": "Esatto: no. Ogni impronta è unica, e la parola che lo dice è proprio quella che stai imparando.",
-    "hints": ["Riascolta la Voce 1: la seconda frase comincia con «No two people…».", "«No two people have the same one» = non ci sono due persone con la stessa."]
+    "hints": [
+      "Riascolta la Voce 1: la seconda frase comincia con «No two people…».",
+      "«No two people have the same one» = non ci sono due persone con la stessa."
+    ]
   },
   "known": {
     "meaning": "(unic|special|singolar|irripetibil|originale|only one|one of a kind|diverso da tutti|senza ugual|non ce n'è un altr)",
@@ -29,52 +58,133 @@
   "cloze": {
     "intro": "Completa con la parola giusta. Attenzione: una frase è una trappola.",
     "items": [
-      { "text": "Every person's DNA is ___ .", "options": ["unique", "only", "same"], "answer": "unique", "why": "Il DNA di ognuno è diverso da tutti gli altri: unique." },
-      { "text": "She's my ___ sister: I don't have any others.", "options": ["unique", "only", "single"], "answer": "only", "why": "Trappola! «Unica» nel senso di «l'unica che ho» si dice only, non unique." },
-      { "text": "It's a ___ chance: it won't happen again.", "options": ["unique", "same", "only"], "answer": "unique", "why": "Un'occasione speciale, irripetibile: unique." }
+      {
+        "text": "Every person's DNA is ___ .",
+        "options": [
+          "unique",
+          "only",
+          "same"
+        ],
+        "answer": "unique",
+        "why": "Il DNA di ognuno è diverso da tutti gli altri: unique."
+      },
+      {
+        "text": "She's my ___ sister: I don't have any others.",
+        "options": [
+          "unique",
+          "only",
+          "single"
+        ],
+        "answer": "only",
+        "why": "Trappola! «Unica» nel senso di «l'unica che ho» si dice only, non unique."
+      },
+      {
+        "text": "It's a ___ chance: it won't happen again.",
+        "options": [
+          "unique",
+          "same",
+          "only"
+        ],
+        "answer": "unique",
+        "why": "Un'occasione speciale, irripetibile: unique."
+      }
     ]
   },
   "explain": {
     "short": "unique = unico nel senso di speciale, senza uguali. Si dice «iu-NÌK», con l'accento alla fine.",
     "facts": [
-      { "label": "Significa", "text": "Unico nel senso di <b>speciale, diverso da tutti</b>: un'impronta, un posto, un'occasione." },
-      { "label": "Si dice", "text": "/juːˈniːk/, <span class=\"say\">«iu-NÌK»</span>. Comincia con «iu» come <i>you</i>, l'accento cade su -nique e «-que» si legge «k»." },
-      { "label": "Trappola", "text": "Per «l'unico che ho» non si usa unique ma <b>only</b>: <i>my only son</i> (il mio unico figlio), non <i>my unique son</i>, che suonerebbe come «il mio figlio speciale, senza uguali»." },
-      { "label": "Curiosità", "text": "Viene dal latino <i>unicus</i>, da <i>unus</i>, uno. Molti insegnanti inglesi storcono il naso davanti a «very unique»: se una cosa è unica, non può esserlo «molto». Nel parlato però lo sentirai spesso." },
-      { "label": "Esempi", "text": "<i>a unique opportunity</i> (un'occasione unica) · <i>a unique experience</i> (un'esperienza unica) · <i>each person is unique</i> (ogni persona è unica)." }
+      {
+        "label": "Significa",
+        "text": "Unico nel senso di <b>speciale, diverso da tutti</b>: un'impronta, un posto, un'occasione."
+      },
+      {
+        "label": "Si dice",
+        "text": "/juːˈniːk/, <span class=\"say\">«iu-NÌK»</span>. Comincia con «iu» come <i>you</i>, l'accento cade su -nique e «-que» si legge «k»."
+      },
+      {
+        "label": "Trappola",
+        "text": "Per «l'unico che ho» non si usa unique ma <b>only</b>: <i>my only son</i> (il mio unico figlio), non <i>my unique son</i>, che suonerebbe come «il mio figlio speciale, senza uguali»."
+      },
+      {
+        "label": "Curiosità",
+        "text": "Viene dal latino <i>unicus</i>, da <i>unus</i>, uno. Molti insegnanti inglesi storcono il naso davanti a «very unique»: se una cosa è unica, non può esserlo «molto». Nel parlato però lo sentirai spesso."
+      },
+      {
+        "label": "Esempi",
+        "text": "<i>a unique opportunity</i> (un'occasione unica) · <i>a unique experience</i> (un'esperienza unica) · <i>each person is unique</i> (ogni persona è unica)."
+      }
     ]
   },
   "voices": {
     "intro": "La stessa parola in voci e accenti diversi: l'orecchio impara il suono, non una sola voce.",
     "lines": [
-      { "voice": "en-GB-RyanNeural", "label": "Inglese", "sub": "Alex", "text": "unique. A unique place." },
-      { "voice": "en-US-JennyNeural", "label": "Americana", "sub": "più aperta", "text": "unique. A unique place." },
-      { "voice": "en-AU-NatashaNeural", "label": "Australiana", "sub": "vocali allungate", "text": "unique. A unique place." },
-      { "voice": "en-IN-NeerjaNeural", "label": "Indiana", "sub": "ritmo diverso", "text": "unique. A unique place." }
+      {
+        "voice": "en-GB-RyanNeural",
+        "label": "Inglese",
+        "sub": "Alex",
+        "text": "unique. A unique place."
+      },
+      {
+        "voice": "en-US-JennyNeural",
+        "label": "Americana",
+        "sub": "più aperta",
+        "text": "unique. A unique place."
+      },
+      {
+        "voice": "en-AU-NatashaNeural",
+        "label": "Australiana",
+        "sub": "vocali allungate",
+        "text": "unique. A unique place."
+      },
+      {
+        "voice": "en-IN-NeerjaNeural",
+        "label": "Indiana",
+        "sub": "ritmo diverso",
+        "text": "unique. A unique place."
+      }
     ]
   },
   "read": {
-    "past": { "en": "It was a unique experience, and I'll never forget it.", "it": "È stata un'esperienza unica, e non la dimenticherò mai." },
-    "present": { "en": "Every city has its own unique smell.", "it": "Ogni città ha il suo odore unico." },
-    "future": { "en": "The hotel will give you a unique view of the sea.", "it": "L'hotel ti regalerà una vista unica sul mare." }
-  },
-  "scene": {
-    "title": "Il caffè più speciale del mondo",
-    "intro": "Alex fa assaggiare a un amico americano un caffè «unico».",
-    "lines": [
-      { "who": "Jake", "voice": "en-US-GuyNeural", "text": "So, what's so special about this coffee?", "it": "Allora, cos'ha di tanto speciale questo caffè?" },
-      { "who": "Alex", "voice": "en-GB-RyanNeural", "expr": "happy", "text": "It's unique! They grow it on one tiny island.", "it": "È unico! Lo coltivano su una minuscola isola." },
-      { "who": "Jake", "voice": "en-US-GuyNeural", "text": "Dude, it tastes like every other coffee.", "it": "Amico, sa di caffè come tutti gli altri." },
-      { "who": "Alex", "voice": "en-GB-RyanNeural", "expr": "sad", "text": "Oh. Then it's uniquely ordinary.", "it": "Ah. Allora è unicamente normale." }
-    ]
+    "past": {
+      "en": "It was a unique experience, and I'll never forget it.",
+      "it": "È stata un'esperienza unica, e non la dimenticherò mai."
+    },
+    "present": {
+      "en": "Every city has its own unique smell.",
+      "it": "Ogni città ha il suo odore unico."
+    },
+    "future": {
+      "en": "The hotel will give you a unique view of the sea.",
+      "it": "L'hotel ti regalerà una vista unica sul mare."
+    }
   },
   "real": {
     "intro": "Quattro situazioni in cui la sentirai davvero. Prima ascolta, poi se vuoi leggi.",
     "clips": [
-      { "title": "Al museo", "sub": "Guida", "voice": "en-GB-SoniaNeural", "text": "This painting is unique: the artist made only one copy, and it has never left this room." },
-      { "title": "Un appartamento in affitto", "sub": "Agente immobiliare", "voice": "en-US-JennyNeural", "text": "The apartment has a unique feature: a private garden on the roof." },
-      { "title": "Al telefono", "sub": "Un'amica", "voice": "en-IE-EmilyNeural", "text": "Honestly, the wedding was unique. They got married on a boat!" },
-      { "title": "Recensione di un telefono", "sub": "Video tecnico", "voice": "en-AU-WilliamNeural", "text": "Each phone has a unique serial number, so you can find it if it's stolen." }
+      {
+        "title": "Al museo",
+        "sub": "Guida",
+        "voice": "en-GB-SoniaNeural",
+        "text": "This painting is unique: the artist made only one copy, and it has never left this room."
+      },
+      {
+        "title": "Un appartamento in affitto",
+        "sub": "Agente immobiliare",
+        "voice": "en-US-JennyNeural",
+        "text": "The apartment has a unique feature: a private garden on the roof."
+      },
+      {
+        "title": "Al telefono",
+        "sub": "Un'amica",
+        "voice": "en-IE-EmilyNeural",
+        "text": "Honestly, the wedding was unique. They got married on a boat!"
+      },
+      {
+        "title": "Recensione di un telefono",
+        "sub": "Video tecnico",
+        "voice": "en-AU-WilliamNeural",
+        "text": "Each phone has a unique serial number, so you can find it if it's stolen."
+      }
     ]
   },
   "reviews": {
@@ -82,40 +192,157 @@
       "title": "Un'offerta da non perdere",
       "intro": "Una pubblicità alla radio. Ascoltala senza leggere.",
       "items": [
-        { "type": "listen", "voice": "en-US-GuyNeural", "text": "Don't miss this unique opportunity: for one weekend only, the museum is open all night, and entry is free.", "it": "Non perdete questa occasione unica: solo per un fine settimana il museo è aperto tutta la notte, e l'ingresso è gratuito.", "question": "Quando è aperto il museo, e quanto costa entrare?", "accept": [["notte", "night"], ["gratis", "free", "gratuit", "niente", "zero", "non costa", "non si paga"]], "answer": "È aperto tutta la notte, per un solo fine settimana, e l'ingresso è gratis. «A unique opportunity» = un'occasione unica." },
-        { "type": "read", "text": "Is this offer really unique, or do they say that every week?", "it": "Questa offerta è davvero unica, o lo dicono ogni settimana?" }
+        {
+          "type": "listen",
+          "voice": "en-US-GuyNeural",
+          "text": "Don't miss this unique opportunity: for one weekend only, the museum is open all night, and entry is free.",
+          "it": "Non perdete questa occasione unica: solo per un fine settimana il museo è aperto tutta la notte, e l'ingresso è gratuito.",
+          "question": "Quando è aperto il museo, e quanto costa entrare?",
+          "accept": [
+            [
+              "notte",
+              "night"
+            ],
+            [
+              "gratis",
+              "free",
+              "gratuit",
+              "niente",
+              "zero",
+              "non costa",
+              "non si paga"
+            ]
+          ],
+          "answer": "È aperto tutta la notte, per un solo fine settimana, e l'ingresso è gratis. «A unique opportunity» = un'occasione unica."
+        },
+        {
+          "type": "read",
+          "text": "Is this offer really unique, or do they say that every week?",
+          "it": "Questa offerta è davvero unica, o lo dicono ogni settimana?"
+        }
       ]
     },
     "3": {
       "title": "La borsa unica",
       "intro": "Alex in un negozio. Ascolta il dialogo.",
       "items": [
-        { "type": "dialogue", "lines": [
-          { "who": "Commessa", "voice": "en-GB-SoniaNeural", "text": "This bag is unique, sir. Handmade. The only one in the shop.", "it": "Questa borsa è unica, signore. Fatta a mano. L'unica nel negozio." },
-          { "who": "Alex", "voice": "en-GB-RyanNeural", "text": "The only one? Then why are there three more in the window?", "it": "L'unica? Allora perché ce ne sono altre tre in vetrina?" },
-          { "who": "Commessa", "voice": "en-GB-SoniaNeural", "text": "Those are, er, unique too.", "it": "Anche quelle sono, ehm, uniche." }
-        ], "question": "Perché Alex non crede che la borsa sia unica?", "accept": [["tre", "three", "3", "altre", "vetrina", "window"]], "answer": "Perché ce ne sono altre tre uguali in vetrina. Nota anche «the only one» = l'unica (nel senso di quantità)." },
-        { "type": "read", "text": "We stayed in a unique little hotel inside an old castle.", "it": "Abbiamo dormito in un piccolo hotel unico dentro un vecchio castello." }
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Commessa",
+              "voice": "en-GB-SoniaNeural",
+              "text": "This bag is unique, sir. Handmade. The only one in the shop.",
+              "it": "Questa borsa è unica, signore. Fatta a mano. L'unica nel negozio."
+            },
+            {
+              "who": "Alex",
+              "voice": "en-GB-RyanNeural",
+              "text": "The only one? Then why are there three more in the window?",
+              "it": "L'unica? Allora perché ce ne sono altre tre in vetrina?"
+            },
+            {
+              "who": "Commessa",
+              "voice": "en-GB-SoniaNeural",
+              "text": "Those are, er, unique too.",
+              "it": "Anche quelle sono, ehm, uniche."
+            }
+          ],
+          "question": "Perché Alex non crede che la borsa sia unica?",
+          "accept": [
+            [
+              "tre",
+              "three",
+              "3",
+              "altre",
+              "vetrina",
+              "window"
+            ]
+          ],
+          "answer": "Perché ce ne sono altre tre uguali in vetrina. Nota anche «the only one» = l'unica (nel senso di quantità)."
+        },
+        {
+          "type": "read",
+          "text": "We stayed in a unique little hotel inside an old castle.",
+          "it": "Abbiamo dormito in un piccolo hotel unico dentro un vecchio castello."
+        }
       ]
     },
     "7": {
       "title": "Unique o only?",
       "intro": "Alex sbaglia proprio la trappola della lezione. Ascolta.",
       "items": [
-        { "type": "dialogue", "lines": [
-          { "who": "Alex", "voice": "en-GB-RyanNeural", "text": "Careful with that! It's my unique jacket.", "it": "Attento a quella! È la mia giacca unica." },
-          { "who": "Jake", "voice": "en-US-GuyNeural", "text": "Your unique jacket? You mean your only jacket?", "it": "La tua giacca unica? Vuoi dire la tua sola giacca?" },
-          { "who": "Alex", "voice": "en-GB-RyanNeural", "text": "Right. My only jacket. But it is quite unique.", "it": "Giusto. La mia sola giacca. Però è piuttosto unica." }
-        ], "question": "Che differenza c'è tra «only» e «unique», secondo il dialogo?", "accept": [["solo", "sola", "una", "quantit", "non ne ha altr", "only one", "l'unica che"]], "answer": "«Only» = l'unica che hai, è una questione di quantità (Alex ha una sola giacca). «Unique» = speciale, senza uguali. La giacca è tutte e due le cose!" },
-        { "type": "read", "text": "Your trip will be unique if you plan it yourself.", "it": "Il tuo viaggio sarà unico se lo organizzi da solo." }
+        {
+          "type": "dialogue",
+          "lines": [
+            {
+              "who": "Alex",
+              "voice": "en-GB-RyanNeural",
+              "text": "Careful with that! It's my unique jacket.",
+              "it": "Attento a quella! È la mia giacca unica."
+            },
+            {
+              "who": "Jake",
+              "voice": "en-US-GuyNeural",
+              "text": "Your unique jacket? You mean your only jacket?",
+              "it": "La tua giacca unica? Vuoi dire la tua sola giacca?"
+            },
+            {
+              "who": "Alex",
+              "voice": "en-GB-RyanNeural",
+              "text": "Right. My only jacket. But it is quite unique.",
+              "it": "Giusto. La mia sola giacca. Però è piuttosto unica."
+            }
+          ],
+          "question": "Che differenza c'è tra «only» e «unique», secondo il dialogo?",
+          "accept": [
+            [
+              "solo",
+              "sola",
+              "una",
+              "quantit",
+              "non ne ha altr",
+              "only one",
+              "l'unica che"
+            ]
+          ],
+          "answer": "«Only» = l'unica che hai, è una questione di quantità (Alex ha una sola giacca). «Unique» = speciale, senza uguali. La giacca è tutte e due le cose!"
+        },
+        {
+          "type": "read",
+          "text": "Your trip will be unique if you plan it yourself.",
+          "it": "Il tuo viaggio sarà unico se lo organizzi da solo."
+        }
       ]
     },
     "21": {
       "title": "Orecchio fino",
       "intro": "Parole con un suono simile, dette da voci diverse. Quale senti?",
       "items": [
-        { "type": "pairs", "target": "unique", "options": ["unique", "antique", "union", "united"], "voices": ["en-GB-RyanNeural", "en-US-JennyNeural", "en-AU-NatashaNeural", "en-IE-EmilyNeural", "en-US-GuyNeural"], "rounds": 5, "answer": "«unique» e «antique» finiscono uguali (-ique = «ik») ma iniziano diversi: «iu» contro «an». «union» e «united» iniziano come unique ma finiscono in un altro modo." },
-        { "type": "read", "text": "Everyone is unique, but nobody is perfect.", "it": "Tutti sono unici, ma nessuno è perfetto." }
+        {
+          "type": "pairs",
+          "target": "unique",
+          "options": [
+            "unique",
+            "antique",
+            "union",
+            "united"
+          ],
+          "voices": [
+            "en-GB-RyanNeural",
+            "en-US-JennyNeural",
+            "en-AU-NatashaNeural",
+            "en-IE-EmilyNeural",
+            "en-US-GuyNeural"
+          ],
+          "rounds": 5,
+          "answer": "«unique» e «antique» finiscono uguali (-ique = «ik») ma iniziano diversi: «iu» contro «an». «union» e «united» iniziano come unique ma finiscono in un altro modo."
+        },
+        {
+          "type": "read",
+          "text": "Everyone is unique, but nobody is perfect.",
+          "it": "Tutti sono unici, ma nessuno è perfetto."
+        }
       ]
     }
   }

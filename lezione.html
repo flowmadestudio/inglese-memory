@@ -355,6 +355,8 @@ dl.facts dd { margin: 0; min-width: 0; }
   const save = obj => { const d = { ...load(), ...obj }; if (window.Account) window.Account.save(id, d); else try { localStorage.setItem(id + "-progress", JSON.stringify(d)); } catch {} };
 
   function go(name) {
+    // No approved scene yet for this word: skip step 7 in whichever direction you were going.
+    if (name === "scene" && D && !D.scene) name = ORDER.indexOf(current) > ORDER.indexOf("scene") ? "speak" : "real";
     current = name; P()?.stop(); stopScene();
     document.querySelectorAll(".step").forEach(s => s.hidden = s.dataset.step !== name);
     const i = ORDER.indexOf(name);
@@ -726,7 +728,7 @@ dl.facts dd { margin: 0; min-width: 0; }
     $("qText").textContent = D.question.text; $("qIt").textContent = "(" + D.question.it + ")";
     $("askWord").textContent = "«" + D.label + "»"; $("kWord").textContent = D.label;
     renderCloze(); renderExplain(); renderVoices(); renderRead();
-    $("sTitle").textContent = D.scene.title; $("sIntro").textContent = D.scene.intro; $("ipaTag").textContent = `${D.label} · ${D.ipa} · «${D.say.toLowerCase()}»`;
+    if (D.scene) { $("sTitle").textContent = D.scene.title; $("sIntro").textContent = D.scene.intro; } $("ipaTag").textContent = `${D.label} · ${D.ipa} · «${D.say.toLowerCase()}»`;
     $("realIntro").textContent = D.real.intro; clipList($("realClips"), D.real.clips);
     $("dTitle").textContent = `Hai imparato «${D.label}»`;
     drawPuppet(0);
