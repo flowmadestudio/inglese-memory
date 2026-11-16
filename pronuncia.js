@@ -69,61 +69,83 @@ const voiceCache = new Map();
 // One shared element, unlocked on the first tap, so Safari lets it play after the voice is fetched.
 const voicePlayer = new Audio();
 const SILENCE = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//OEwAAAAAAAAAAAAEluZm8AAAAPAAAABQAAAqAAbW1tbW1tbW1tbW1tbW1tbW1tbZKSkpKSkpKSkpKSkpKSkpKSkpKStra2tra2tra2tra2tra2tra2trbb29vb29vb29vb29vb29vb29vb2///////////////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQEUAAAAAAAAAKgvT9A1gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//NExAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMu//NExFMAAANIAAAAADEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMu//NExKYAAANIAAAAADEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NExKwAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NExKwAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
-let unlocked = false;
-function unlock() { if (unlocked) return; unlocked = true; voicePlayer.src = SILENCE; voicePlayer.play().catch(() => {}); }
-
-async function speak(text, voice = VOICE) {
-  unlock(); // must run synchronously inside the tap
-  const key = voice + "|" + text;
-  let url = voiceCache.get(key);
-  if (!url) {
-    const { SDK, cfg } = await config();
-    cfg.speechSynthesisVoiceName = voice;
-    cfg.speechSynthesisOutputFormat = SDK.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
-    const synth = new SDK.SpeechSynthesizer(cfg, null);
-    const result = await new Promise((res, rej) => synth.speakTextAsync(text, res, rej));
-    synth.close();
-    if (result.reason !== SDK.ResultReason.SynthesizingAudioCompleted) throw new Error("tts");
-    url = URL.createObjectURL(new Blob([result.audioData], { type: "audio/mpeg" }));
-    voiceCache.set(key, url);
-  }
-  voicePlayer.pause();
-  voicePlayer.src = url;
-  voicePlayer.onended = null;
-  await voicePlayer.play();
-  return voicePlayer;
+let unlocked = false, actx = null;
+function unlock() {
+  if (unlocked) return; unlocked = true;
+  voicePlayer.src = SILENCE; voicePlayer.play().catch(() => {});
+  try { actx = new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch {}
 }
-// Like speak(), but also returns when each word is said (seconds), for lip-sync and captions.
-const timedCache = new Map();
-async function speakTimed(text, voice = VOICE) {
-  unlock();
-  const key = voice + "|" + text;
-  let hit = timedCache.get(key);
-  if (!hit) {
+
+// One synthesis, cached: mp3 bytes + when each word is said. rate < 1 = slower (SSML).
+const synthCache = new Map();
+const xmlEsc = s => s.replace(/[<>&'"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]);
+function synth(text, voice = VOICE, rate = 1, ph = null) {
+  const key = voice + "|" + rate + "|" + text + "|" + JSON.stringify(ph || {});
+  if (!synthCache.has(key)) synthCache.set(key, (async () => {
     const { SDK, cfg } = await config();
     cfg.speechSynthesisVoiceName = voice;
     cfg.speechSynthesisOutputFormat = SDK.SpeechSynthesisOutputFormat.Audio24Khz48KBitRateMonoMp3;
-    const synth = new SDK.SpeechSynthesizer(cfg, null);
+    const s = new SDK.SpeechSynthesizer(cfg, null);
     const words = [];
-    synth.wordBoundary = (_, e) => {
+    s.wordBoundary = (_, e) => {
       if (e.boundaryType !== undefined && String(e.boundaryType).toLowerCase().includes("punctuation")) return;
       const start = e.audioOffset / 1e7, dur = e.duration ? (e.duration > 1e4 ? e.duration / 1e7 : e.duration / 1000) : .25;
       words.push({ text: e.text, start, end: start + Math.max(.08, dur) });
     };
-    const result = await new Promise((res, rej) => synth.speakTextAsync(text, res, rej));
-    synth.close();
-    if (result.reason !== SDK.ResultReason.SynthesizingAudioCompleted) throw new Error("tts");
-    hit = { url: URL.createObjectURL(new Blob([result.audioData], { type: "audio/mpeg" })), words };
-    timedCache.set(key, hit);
-  }
+    // ph = {word: "IPA"}: say that word exactly this way (e.g. stress on the last syllable)
+    let body = xmlEsc(text);
+    for (const [w, ipa] of Object.entries(ph || {})) body = body.replace(new RegExp("\\b(" + w + ")\\b", "i"), `<phoneme alphabet="ipa" ph="${xmlEsc(ipa)}">$1</phoneme>`);
+    const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><voice name="${voice}"><prosody rate="${Math.round((rate - 1) * 100)}%">${body}</prosody></voice></speak>`;
+    const result = await new Promise((res, rej) => rate === 1 && !ph ? s.speakTextAsync(text, res, rej) : s.speakSsmlAsync(ssml, res, rej));
+    s.close();
+    if (result.reason !== SDK.ResultReason.SynthesizingAudioCompleted) { synthCache.delete(key); throw new Error("tts"); }
+    return { data: result.audioData, url: URL.createObjectURL(new Blob([result.audioData], { type: "audio/mpeg" })), words };
+  })().catch(e => { synthCache.delete(key); throw e; }));
+  return synthCache.get(key);
+}
+
+async function speak(text, voice = VOICE, rate = 1) {
+  unlock(); // must run synchronously inside the tap
+  const hit = await synth(text, voice, rate);
+  voicePlayer.pause(); voicePlayer.src = hit.url; voicePlayer.onended = null;
+  await voicePlayer.play();
+  return voicePlayer;
+}
+// Like speak(), but also returns when each word is said (seconds), for lip-sync and captions.
+async function speakTimed(text, voice = VOICE, rate = 1, ph = null) {
+  unlock();
+  const hit = await synth(text, voice, rate, ph);
   voicePlayer.pause(); voicePlayer.src = hit.url; voicePlayer.onended = null;
   await voicePlayer.play();
   return { player: voicePlayer, words: hit.words };
 }
 
+// Several voices saying the same line together (a crowd): mixed with Web Audio, slightly out of step.
+// Returns a player-like object, so finished() and lip-sync work the same way.
+let chorusNow = null;
+async function chorus(text, voices) {
+  unlock();
+  const hits = await Promise.all(voices.map(v => synth(text, v)));
+  if (!actx) { return { player: await speak(text, voices[0]), words: hits[0].words }; }
+  await actx.resume();
+  const bufs = await Promise.all(hits.map(h => actx.decodeAudioData(h.data.slice(0))));
+  voicePlayer.pause(); chorusNow?.stop();
+  const t0 = actx.currentTime + .05, gain = actx.createGain(); gain.gain.value = Math.min(1, 1.6 / Math.sqrt(bufs.length)); gain.connect(actx.destination);
+  const srcs = bufs.map((b, i) => { const s = actx.createBufferSource(); s.buffer = b; s.connect(gain); s.start(t0 + i * .045 + Math.random() * .03); return s; });
+  const dur = Math.max(...bufs.map(b => b.duration)) + bufs.length * .045;
+  const p = {
+    ended: false, paused: false, onended: null, onpause: null,
+    get currentTime() { return Math.max(0, actx.currentTime - t0); },
+    stop() { if (p.paused) return; srcs.forEach(s => { try { s.stop(); } catch {} }); p.paused = true; p.onpause?.(); },
+  };
+  setTimeout(() => { if (!p.paused) { p.ended = true; p.paused = true; p.onended?.(); } }, dur * 1000 + 60);
+  chorusNow = p;
+  return { player: p, words: hits[0].words };
+}
+
 // Resolves when the current line has finished (or was stopped).
 const finished = p => new Promise(res => { if (p.ended || p.paused) return res(); p.onended = res; p.onpause = res; });
-function stop() { voicePlayer.pause(); }
+function stop() { voicePlayer.pause(); chorusNow?.stop(); }
 
 // Tips in Italian for the classic traps; anything else gets a generic hint from the sounds.
 const TIPS = {
@@ -154,5 +176,5 @@ function tipFor(w) {
   return worst && worst.score < 60 ? `«${w.word}»: il suono /${worst.ipa}/ non era chiaro. Ascoltala e ripeti piano.` : `«${w.word}»: ascoltala e ripeti piano.`;
 }
 
-window.Pronuncia = { assess, speak, speakTimed, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
+window.Pronuncia = { assess, speak, speakTimed, chorus, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
 document.dispatchEvent(new Event("pronuncia:ready"));

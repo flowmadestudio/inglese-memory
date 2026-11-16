@@ -347,5 +347,89 @@
         }
       ]
     }
+  },
+  "scene": {
+    "title": "Il badge sbagliato",
+    "intro": "Primo giorno in ufficio. Alex riceve il suo badge, con una lettera sbagliata.",
+    "set": "office",
+    "badge": {
+      "stem": "EMPLOY"
+    },
+    "alex": {
+      "x": 500,
+      "y": 415,
+      "scale": 0.46
+    },
+    "lines": [
+      {
+        "who": "Tutto l'ufficio",
+        "chorus": [
+          "en-US-JennyNeural",
+          "en-US-AriaNeural",
+          "en-US-TonyNeural",
+          "en-US-JasonNeural"
+        ],
+        "badge": "ER",
+        "alexExpr": "shock",
+        "text": "Good morning, boss!",
+        "it": "Buongiorno, capo!"
+      },
+      {
+        "who": "Alex",
+        "voice": "en-GB-RyanNeural",
+        "expr": "happy",
+        "raise": true,
+        "text": "Boss? Me? Brilliant! Everyone gets a week of holiday!",
+        "it": "Capo? Io? Fantastico! Una settimana di ferie per tutti!"
+      },
+      {
+        "who": "Tutto l'ufficio",
+        "chorus": [
+          "en-US-JennyNeural",
+          "en-US-AriaNeural",
+          "en-US-TonyNeural",
+          "en-US-JasonNeural"
+        ],
+        "text": "Thank you, boss!",
+        "it": "Grazie, capo!"
+      },
+      {
+        "who": "Il vero capo",
+        "voice": "en-US-DavisNeural",
+        "rate": 0.6,
+        "boss": "in",
+        "badge": "rip",
+        "alexExpr": "panic",
+        "text": "Employer?",
+        "it": "Datore di lavoro?",
+        "ph": {
+          "Employer": "ɛmˈplɔɪɚ"
+        },
+        "label": "employER · «em-PLÒI-er» = il capo"
+      },
+      {
+        "who": "Il vero capo",
+        "voice": "en-US-DavisNeural",
+        "rate": 0.7,
+        "badge": "EE",
+        "alexExpr": "sad",
+        "text": "No. You are an employee.",
+        "it": "No. Tu sei un dipendente.",
+        "ph": {
+          "employee": "ˌɛmplɔɪˈiː"
+        },
+        "label": "employEE · «em-ploi-Ì» = il dipendente"
+      },
+      {
+        "who": "Alex",
+        "voice": "en-GB-RyanNeural",
+        "expr": "sad",
+        "text": "Right. Employee. So, no holiday?",
+        "it": "Giusto. Dipendente. Quindi niente ferie?",
+        "end": "employ<b>ER</b> «em-PLÒI-er» = il capo, chi paga<br>employ<b>EE</b> «em-ploi-Ì» = il dipendente, chi viene pagato"
+      }
+    ],
+    "boss": true,
+    "label": "employee · /ˌemplɔɪˈiː/ · «em-ploi-Ì»"
   }
 }

@@ -345,5 +345,64 @@
         }
       ]
     }
+  },
+  "scene": {
+    "title": "Il clone",
+    "intro": "Alex si sveglia e nella sua stanza non è più solo.",
+    "set": "bedroom",
+    "clones": true,
+    "alex": {
+      "x": 512,
+      "y": 400,
+      "scale": 0.56
+    },
+    "lines": [
+      {
+        "who": "Alex",
+        "voice": "en-GB-RyanNeural",
+        "expr": "panic",
+        "shake": true,
+        "clones": "in",
+        "text": "Wait. Why are there ninety-nine of me?",
+        "it": "Un momento. Perché ci sono novantanove me?"
+      },
+      {
+        "who": "Emily",
+        "voice": "en-IE-EmilyNeural",
+        "alexExpr": "shock",
+        "text": "Relax. You're my only Alex. The only real one.",
+        "it": "Calma. Sei il mio unico Alex. L'unico vero.",
+        "label": "my only Alex = il mio unico Alex"
+      },
+      {
+        "who": "Alex",
+        "voice": "en-GB-RyanNeural",
+        "expr": "happy",
+        "raise": true,
+        "text": "That's me! I'm unique!",
+        "it": "Sono io! Io sono unico!"
+      },
+      {
+        "who": "I 99 cloni",
+        "chorus": [
+          "en-GB-RyanNeural",
+          "en-GB-ThomasNeural",
+          "en-GB-AlfieNeural",
+          "en-GB-OliverNeural",
+          "en-GB-ElliotNeural"
+        ],
+        "alexExpr": "shock",
+        "text": "Unique! Me too!",
+        "it": "Unico! Anch'io!"
+      },
+      {
+        "who": "Emily",
+        "voice": "en-IE-EmilyNeural",
+        "alexExpr": "sad",
+        "text": "Only one of you is real. And none of you is unique.",
+        "it": "Solo uno di voi è vero. E nessuno di voi è unico.",
+        "end": "<b>only</b> = l'unico, uno solo (quanti?) · <b>unique</b> = senza uguali (com'è?)<br>il mio unico figlio = my <b>only</b> son"
+      }
+    ]
   }
 }
