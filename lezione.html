@@ -236,6 +236,7 @@ dl.facts dd { margin: 0; min-width: 0; }
     <div class="eyebrow">Passo 3 · Completa</div>
     <p class="muted" id="clozeIntro"></p>
     <div class="clozes" id="clozes"></div>
+    <div id="trapBox"></div>
     <div class="nav"><button data-go="question" type="button">Indietro</button><button class="primary" data-go="explain" type="button">Avanti</button></div>
   </section>
 
@@ -278,6 +279,7 @@ dl.facts dd { margin: 0; min-width: 0; }
       </div>
       <p class="feedback no" id="rError" hidden></p>
     </div>
+    <div id="useBox"></div>
     <div class="nav"><button data-go="voices" type="button">Indietro</button><button class="primary" data-go="scene" type="button">Avanti</button></div>
   </section>
 
@@ -784,12 +786,103 @@ dl.facts dd { margin: 0; min-width: 0; }
   }
   $("sceneStart").onclick = playScene; $("sceneReplay").onclick = playScene;
 
+  // ---- Checks that ask you to PRODUCE the word, not just recognise it ----
+  const lev = (a, b) => { const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]); for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; };
+  // Does the answer contain the word (a typo or a plural is fine)?
+  // Words that look alike but mean something else (employer vs employee) never count as a typo.
+  const saysWord = (text, word, not = D?.confusables || []) => text.toLowerCase().split(/[^a-z']+/).some(t => {
+    if (!t || not.includes(t) || not.includes(t.replace(/s$/, ""))) return false;
+    if (t === word || t === word + "s") return true;
+    const d = lev(t, word);
+    // a typo counts only if it is clearly closer to the right word than to any look-alike
+    return word.length >= 5 && d <= (word.length >= 8 ? 2 : 1) && not.every(c => lev(t, c) > d);
+  });
+  function micButton(target, onText, lang = "en-US") {
+    const b = el("button", { type: "button", className: "mic", ariaLabel: "Rispondi a voce", innerHTML: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>' });
+    b.onclick = async () => {
+      b.classList.add("on");
+      try { const t = await P().listen({ lang }); target.value = t; onText?.(t); }
+      catch (err) { target.placeholder = err?.code === "login" ? "Entra con il tuo account per rispondere a voce" : err?.code === "mic" ? "Permetti il microfono e riprova" : "Non ho sentito niente: riprova o scrivi"; }
+      b.classList.remove("on");
+    };
+    return b;
+  }
+
+  // 1. "Prima ricordala": the Italian meaning, you say the English word BEFORE hearing anything.
+  function rvRecall(onDone) {
+    const box = el("div", { className: "rv-item", style: "border:2px solid var(--accent)" });
+    const ta = el("textarea", { placeholder: "Scrivi o di' la parola inglese", style: "min-height:60px" });
+    const check = el("button", { type: "button", className: "primary", textContent: "Controlla" });
+    const fb = el("p", { className: "feedback", hidden: true });
+    let tries = 0, done = false;
+    const run = () => {
+      if (done) return; const a = ta.value.trim(); if (!a) { ta.focus(); return; } tries++;
+      const ok = saysWord(a, D.word);
+      fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no");
+      if (ok) { fb.textContent = `Sì: «${D.label}», ${D.say.toLowerCase()}. Te la sei ricordata senza aiuti.`; }
+      else if (tries < 2) { fb.textContent = "Non è questa. Pensaci ancora un attimo: un tentativo in più."; return; }
+      else { fb.textContent = `Era «${D.label}». Va bene così: oggi la ripassi, e te la ripropongo anche domani.`; }
+      done = true; check.disabled = true; onDone(ok);
+      P()?.speak(D.label).catch(() => {});
+    };
+    check.onclick = run;
+    box.append(el("h3", { textContent: "Prima ricordala" }), el("p", { innerHTML: `Come si dice in inglese: <b>${D.meaning}</b>?` }), el("p", { className: "muted", textContent: "Prima di sentire qualsiasi cosa: è questo che fissa la parola." }),
+      el("div", { className: "answer" }, ta, micButton(ta, () => run())), el("div", { className: "row" }, check), fb);
+    return box;
+  }
+
+  // 2. "La trappola": a new situation, pick the right word AND the reason.
+  function rvTrap(item) {
+    const box = el("div", { className: "rv-item" });
+    const p = el("p", { className: "cloze" }); const [a, b] = item.text.split("___");
+    const blank = el("span", { className: "blank", textContent: "?" }); p.append(a, blank, b || "");
+    const opts = el("div", { className: "opts" }), why = el("div", { className: "opts", hidden: true, style: "flex-direction:column;align-items:stretch" });
+    const fb = el("p", { className: "feedback", hidden: true });
+    item.options.forEach(o => { const btn = el("button", { type: "button", textContent: o }); btn.onclick = () => {
+      opts.querySelectorAll("button").forEach(x => x.disabled = true);
+      const ok = o === item.answer; btn.className = ok ? "right" : "wrong"; blank.textContent = item.answer;
+      if (!ok) opts.querySelectorAll("button").forEach(x => { if (x.textContent === item.answer) x.className = "right"; });
+      fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no"); fb.textContent = (ok ? "Giusto. " : `No: qui ci vuole «${item.answer}». `) + "E perché?";
+      why.hidden = false;
+    }; opts.append(btn); });
+    item.reasons.forEach(r => { const btn = el("button", { type: "button", textContent: r.t, style: "text-align:left;font-family:var(--font-body);font-size:1rem" }); btn.onclick = () => {
+      why.querySelectorAll("button").forEach(x => { x.disabled = true; if (item.reasons.find(z => z.t === x.textContent)?.ok) x.className = "right"; });
+      if (!r.ok) btn.className = "wrong";
+      fb.className = "feedback " + (r.ok ? "ok" : "no"); fb.textContent = (r.ok ? "Esatto. " : "Non è questo il motivo. ") + item.explain;
+    }; why.append(btn); });
+    box.append(el("h3", { textContent: "La trappola" }), el("p", { className: "muted", textContent: item.intro }), p, opts, why, fb);
+    return box;
+  }
+
+  // 3. "Usala tu": an Italian sentence to say in English. Tolerant: the word must be there and used well.
+  function rvUse(item) {
+    const box = el("div", { className: "rv-item" });
+    const ta = el("textarea", { placeholder: "Dilla o scrivila in inglese", style: "min-height:60px" });
+    const check = el("button", { type: "button", className: "primary", textContent: "Controlla" });
+    const fb = el("p", { className: "feedback", hidden: true });
+    let tries = 0;
+    const run = () => {
+      const a = ta.value.trim(); if (!a) { ta.focus(); return; } tries++;
+      const target = item.word || D.word;
+      const hasWord = saysWord(a, target, item.word ? [D.word] : D.confusables || []), others = (item.also || []).filter(g => !g.some(t => a.toLowerCase().includes(t)));
+      const ok = hasWord && others.length === 0;
+      fb.hidden = false; fb.className = "feedback " + (ok ? "ok" : "no");
+      fb.textContent = ok ? `Bene. Una versione naturale: «${item.model}»` : !hasWord ? `Manca la parola giusta: usa «${target}».` : tries < 2 ? "Ci sei quasi: controlla che ci sia tutto il senso della frase italiana." : `Ecco una versione naturale: «${item.model}»`;
+      if (ok || tries >= 2) { check.disabled = true; P()?.speak(item.model).catch(() => {}); }
+      const st = load(); save({ use: { ...(st.use || {}), [item.it]: ok } });
+    };
+    check.onclick = run;
+    box.append(el("h3", { textContent: "Usala tu" }), el("p", { innerHTML: `Come lo diresti in inglese? <b>«${item.it}»</b>` }), el("div", { className: "answer" }, ta, micButton(ta, () => run())), el("div", { className: "row" }, check), fb);
+    return box;
+  }
+
   // ---- Step 9 + reviews (same as gate, content from the word's file) ----
   const fmt = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "numeric", month: "short" });
   function schedule(st) {
     const days = st.known ? [7, 30, 90, 180] : [1, 3, 7, 21], sets = st.known ? ["7", "21", "3", "1"] : ["1", "3", "7", "21"];
     const start = st.done || Date.now();
-    return days.map((d, i) => ({ day: d, set: sets[i], at: start + d * 864e5, did: !!st.reviews?.[d] }));
+    return days.map((d, i) => ({ day: d, set: sets[i], at: Math.max(start + d * 864e5, (st.again?.[d] || 0) + 864e5), did: !!st.reviews?.[d], again: !!st.again?.[d] }));
   }
   function renderPlan() {
     if (!load().done) save({ done: Date.now() });
@@ -797,7 +890,7 @@ dl.facts dd { margin: 0; min-width: 0; }
     schedule(load()).forEach(s => {
       const due = !s.did && Date.now() >= s.at;
       const b = el("button", { type: "button", className: s.did ? "did" : due ? "due" : "" });
-      b.innerHTML = `<b>+${s.day}</b><span>${s.day === 1 ? "giorno" : "giorni"} · ${fmt.format(new Date(s.at))}</span><em>${s.did ? "✓ fatto" : due ? "da fare oggi" : "prova ora"}</em>`;
+      b.innerHTML = `<b>+${s.day}</b><span>${s.day === 1 ? "giorno" : "giorni"} · ${fmt.format(new Date(s.at))}</span><em>${s.did ? "✓ fatto" : due ? (s.again ? "da rifare oggi" : "da fare oggi") : s.again ? "da rifare" : "prova ora"}</em>`;
       b.onclick = () => openReview(s); plan.append(b);
     });
   }
@@ -812,10 +905,22 @@ dl.facts dd { margin: 0; min-width: 0; }
     rvSlot = slot; go("review"); $("rvItems").innerHTML = "";
     $("rvEyebrow").textContent = `Ripasso · ${slot.day}° giorno` + (Date.now() < slot.at ? " · anteprima" : "");
     const set = D.reviews[slot.set]; $("rvTitle").textContent = set.title; $("rvIntro").textContent = set.intro;
-    set.items.forEach(item => $("rvItems").append(({ listen: rvListen, dialogue: rvListen, read: rvRead, pairs: rvPairs })[item.type](item)));
+    rvRecallOk = null;
+    const rest = el("div", { className: "rv-items", hidden: true });
+    set.items.forEach(item => rest.append(({ listen: rvListen, dialogue: rvListen, read: rvRead, pairs: rvPairs, trap: rvTrap, use: rvUse })[item.type](item)));
+    $("rvItems").append(rvRecall(ok => { rvRecallOk = ok; rest.hidden = false; }), rest);
   }
+  let rvRecallOk = null;
   $("rvBack").onclick = () => go("done");
-  $("rvDone").onclick = () => { if (rvSlot && Date.now() >= rvSlot.at) save({ reviews: { ...(load().reviews || {}), [rvSlot.day]: Date.now() } }); go("done"); };
+  $("rvDone").onclick = () => {
+    if (rvSlot && Date.now() >= rvSlot.at) {
+      const st = load();
+      // Not remembered: the review isn't ticked, it comes back tomorrow.
+      if (rvRecallOk === false) save({ again: { ...(st.again || {}), [rvSlot.day]: Date.now() } });
+      else save({ reviews: { ...(st.reviews || {}), [rvSlot.day]: Date.now() } });
+    }
+    go("done");
+  };
   function rvListen(item) {
     const lines = item.lines || [{ voice: item.voice, text: item.text, it: item.it }];
     const box = el("div", { className: "rv-item" });
@@ -896,6 +1001,8 @@ dl.facts dd { margin: 0; min-width: 0; }
     $("qText").textContent = D.question.text; $("qIt").textContent = "(" + D.question.it + ")";
     $("askWord").textContent = "«" + D.label + "»"; $("kWord").textContent = D.label;
     renderCloze(); renderExplain(); renderVoices(); renderRead();
+    if (D.trap) $("trapBox").append(rvTrap(D.trap));
+    if (D.use) $("useBox").append(rvUse(D.use));
     if (D.scene) { $("sTitle").textContent = D.scene.title; $("sIntro").textContent = D.scene.intro; } $("ipaTag").textContent = `${D.label} · ${D.ipa} · «${D.say.toLowerCase()}»`;
     $("realIntro").textContent = D.real.intro; clipList($("realClips"), D.real.clips);
     $("dTitle").textContent = `Hai imparato «${D.label}»`;

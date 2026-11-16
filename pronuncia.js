@@ -64,6 +64,22 @@ async function assess(reference, { onListening } = {}) {
   };
 }
 
+// Free speech to text (no reference sentence): for "say it in English" and "remember the word".
+async function listen({ onListening, lang = "en-US" } = {}) {
+  const { SDK, cfg } = await config();
+  cfg.speechRecognitionLanguage = lang;
+  const rec = new SDK.SpeechRecognizer(cfg, SDK.AudioConfig.fromDefaultMicrophoneInput());
+  onListening?.();
+  const result = await new Promise((res, rej) => rec.recognizeOnceAsync(res, rej));
+  rec.close();
+  if (result.reason === SDK.ResultReason.Canceled) {
+    const det = SDK.CancellationDetails.fromResult(result);
+    throw Object.assign(new Error(det.errorDetails || "canceled"), { code: /permission|NotAllowed|microphone/i.test(det.errorDetails || "") ? "mic" : "canceled" });
+  }
+  if (result.reason !== SDK.ResultReason.RecognizedSpeech) throw Object.assign(new Error("nomatch"), { code: "nomatch" });
+  return result.text;
+}
+
 // The sentence read by a natural voice; cached so replays are free.
 const voiceCache = new Map();
 // One shared element, unlocked on the first tap, so Safari lets it play after the voice is fetched.
@@ -176,5 +192,5 @@ function tipFor(w) {
   return worst && worst.score < 60 ? `«${w.word}»: il suono /${worst.ipa}/ non era chiaro. Ascoltala e ripeti piano.` : `«${w.word}»: ascoltala e ripeti piano.`;
 }
 
-window.Pronuncia = { assess, speak, speakTimed, chorus, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
+window.Pronuncia = { assess, listen, speak, speakTimed, chorus, finished, stop, tipFor, available: () => !!window.Account?.signedIn() };
 document.dispatchEvent(new Event("pronuncia:ready"));

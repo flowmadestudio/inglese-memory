@@ -263,6 +263,20 @@
           "answer": "Undici: il dodicesimo «dipendente» è il suo gatto. E nota «good at» = bravo in: è una coppia obbligata!"
         },
         {
+          "type": "use",
+          "it": "Il nostro hotel ha venti dipendenti.",
+          "also": [
+            [
+              "hotel"
+            ],
+            [
+              "twenty",
+              "20"
+            ]
+          ],
+          "model": "Our hotel has twenty employees."
+        },
+        {
           "type": "read",
           "text": "I was an employee at a hotel for two years.",
           "it": "Sono stato dipendente in un hotel per due anni."
@@ -311,6 +325,31 @@
           "answer": "Lavora per conto suo («I work for myself»). L'employer è il datore di lavoro, chi ti paga: per Alex, è lui stesso."
         },
         {
+          "type": "trap",
+          "intro": "Ancora la trappola, in un posto nuovo.",
+          "text": "Tom works at the supermarket from 8 to 4 and gets paid every month. Tom is an ___.",
+          "options": [
+            "employee",
+            "employer"
+          ],
+          "answer": "employee",
+          "reasons": [
+            {
+              "t": "Perché lavora per qualcuno e viene pagato: -ee.",
+              "ok": true
+            },
+            {
+              "t": "Perché lavora molte ore: -ee.",
+              "ok": false
+            },
+            {
+              "t": "Perché employer è solo per le grandi aziende.",
+              "ok": false
+            }
+          ],
+          "explain": "Chi viene pagato è employEE. Chi paga, che sia un'azienda o una persona sola, è employER."
+        },
+        {
           "type": "read",
           "text": "The new law will protect employees who work at night.",
           "it": "La nuova legge proteggerà i dipendenti che lavorano di notte."
@@ -339,6 +378,20 @@
           ],
           "rounds": 5,
           "answer": "Ascolta la fine: «-ii» è employee (il dipendente), «-er» è employer (il datore), «-ment» è employment (il lavoro). «employ» da solo è il verbo: assumere."
+        },
+        {
+          "type": "use",
+          "it": "Il mio capo è un buon datore di lavoro.",
+          "also": [
+            [
+              "boss"
+            ],
+            [
+              "good"
+            ]
+          ],
+          "model": "My boss is a good employer.",
+          "word": "employer"
         },
         {
           "type": "read",
@@ -431,5 +484,49 @@
     ],
     "boss": true,
     "label": "employee · /ˌemplɔɪˈiː/ · «em-ploi-Ì»"
-  }
+  },
+  "trap": {
+    "intro": "Situazione nuova. Scegli la parola, poi il motivo.",
+    "text": "Laura owns a bakery and pays three people. Laura is their ___.",
+    "options": [
+      "employer",
+      "employee"
+    ],
+    "answer": "employer",
+    "reasons": [
+      {
+        "t": "Perché -er è chi assume e paga.",
+        "ok": true
+      },
+      {
+        "t": "Perché -ee è chi comanda.",
+        "ok": false
+      },
+      {
+        "t": "Perché sono sinonimi: vanno bene tutti e due.",
+        "ok": false
+      }
+    ],
+    "explain": "Laura paga, quindi è il datore di lavoro: employER. Le tre persone che lavorano per lei sono i suoi employEEs."
+  },
+  "use": {
+    "it": "Ogni nuovo dipendente riceve un badge.",
+    "also": [
+      [
+        "new"
+      ],
+      [
+        "badge",
+        "card",
+        "pass"
+      ]
+    ],
+    "model": "Every new employee gets a badge."
+  },
+  "confusables": [
+    "employer",
+    "employ",
+    "employment",
+    "employed"
+  ]
 }

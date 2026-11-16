@@ -262,6 +262,16 @@
           "answer": "Perché ce ne sono altre tre uguali in vetrina. Nota anche «the only one» = l'unica (nel senso di quantità)."
         },
         {
+          "type": "use",
+          "it": "È stata un'esperienza unica.",
+          "also": [
+            [
+              "experience"
+            ]
+          ],
+          "model": "It was a unique experience."
+        },
+        {
           "type": "read",
           "text": "We stayed in a unique little hotel inside an old castle.",
           "it": "Abbiamo dormito in un piccolo hotel unico dentro un vecchio castello."
@@ -309,6 +319,31 @@
           "answer": "«Only» = l'unica che hai, è una questione di quantità (Alex ha una sola giacca). «Unique» = speciale, senza uguali. La giacca è tutte e due le cose!"
         },
         {
+          "type": "trap",
+          "intro": "Ancora la trappola, in un posto nuovo.",
+          "text": "The shop has one red bag left. «This is the ___ red bag we have.»",
+          "options": [
+            "only",
+            "unique"
+          ],
+          "answer": "only",
+          "reasons": [
+            {
+              "t": "Perché ne è rimasta una sola: è quantità.",
+              "ok": true
+            },
+            {
+              "t": "Perché la borsa rossa è speciale.",
+              "ok": false
+            },
+            {
+              "t": "Perché only si usa solo per le persone.",
+              "ok": false
+            }
+          ],
+          "explain": "Una sola rimasta = the only one. Se fosse fatta a mano e diversa da tutte, allora sarebbe unique."
+        },
+        {
           "type": "read",
           "text": "Your trip will be unique if you plan it yourself.",
           "it": "Il tuo viaggio sarà unico se lo organizzi da solo."
@@ -337,6 +372,19 @@
           ],
           "rounds": 5,
           "answer": "«unique» e «antique» finiscono uguali (-ique = «ik») ma iniziano diversi: «iu» contro «an». «union» e «united» iniziano come unique ma finiscono in un altro modo."
+        },
+        {
+          "type": "use",
+          "it": "Il mio unico fratello vive a Londra.",
+          "also": [
+            [
+              "only"
+            ],
+            [
+              "brother"
+            ]
+          ],
+          "model": "My only brother lives in London."
         },
         {
           "type": "read",
@@ -404,5 +452,49 @@
         "end": "<b>only</b> = l'unico, uno solo (quanti?) · <b>unique</b> = senza uguali (com'è?)<br>il mio unico figlio = my <b>only</b> son"
       }
     ]
-  }
+  },
+  "trap": {
+    "intro": "Situazione nuova. Scegli la parola, poi il motivo.",
+    "text": "Marco has no brothers or sisters. His mum says: «Marco is my ___ son.»",
+    "options": [
+      "only",
+      "unique"
+    ],
+    "answer": "only",
+    "reasons": [
+      {
+        "t": "Perché conta quanti figli ha: uno solo.",
+        "ok": true
+      },
+      {
+        "t": "Perché per una mamma il figlio è speciale.",
+        "ok": false
+      },
+      {
+        "t": "Perché unique non si usa per le persone.",
+        "ok": false
+      }
+    ],
+    "explain": "«Unico» nel senso di «uno solo» è only: è una questione di quantità. Unique si usa anche per le persone, ma vuol dire «senza uguali»."
+  },
+  "use": {
+    "it": "Ogni persona è unica.",
+    "also": [
+      [
+        "every",
+        "each",
+        "all",
+        "everyone",
+        "everybody"
+      ]
+    ],
+    "model": "Every person is unique."
+  },
+  "confusables": [
+    "union",
+    "antique",
+    "united",
+    "unit",
+    "uniq"
+  ]
 }
