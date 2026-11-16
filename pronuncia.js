@@ -48,7 +48,9 @@ async function meter(onLevel) {
 function stoppable(rec, control) {
   return new Promise((res, rej) => {
     let over = false;
-    if (control) control.stop = () => { if (over) return; over = true; try { rec.close(); } catch {} rej(Object.assign(new Error("stopped"), { code: "stopped" })); };
+    if (control) control.stop = (code = "stopped") => { if (over) return; over = true; try { rec.close(); } catch {} rej(Object.assign(new Error(code), { code })); };
+    // Never hang: if Azure doesn't answer, give up after 25 s (the page also has its own shorter limit).
+    setTimeout(() => control?.stop ? control.stop("timeout") : (!over && (over = true, (() => { try { rec.close(); } catch {} })(), rej(Object.assign(new Error("timeout"), { code: "timeout" })))), 25000);
     rec.recognizeOnceAsync(r => { if (over) return; over = true; rec.close(); res(r); }, e => { if (over) return; over = true; try { rec.close(); } catch {} rej(e); });
   });
 }

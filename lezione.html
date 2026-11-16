@@ -555,7 +555,7 @@ dl.facts dd { margin: 0; min-width: 0; }
       },
       listening() { box.className = "listen on" + (box.classList.contains("fake") ? " fake" : ""); txt.textContent = "Ti ascolto… leggi ora"; },
       speech() { txt.textContent = "Ti sento… continua fino alla fine"; },
-      checking(msg) { stopMeter?.(); stopMeter = null; box.className = "listen check"; bars.forEach(b => b.style.transform = ""); txt.textContent = msg || "Ho sentito. Controllo la pronuncia…"; },
+      checking(msg) { box.className = "listen check"; bars.forEach(b => b.style.transform = ""); txt.textContent = msg || "Ho sentito. Controllo la pronuncia…"; },
       stop() { stopMeter?.(); stopMeter = null; box.hidden = true; bars.forEach(b => b.style.transform = ""); },
     };
   }
@@ -581,10 +581,13 @@ dl.facts dd { margin: 0; min-width: 0; }
       const was = box.classList.contains("done") ? "Rileggi" : "Leggi tu";
       setMic("Preparo…", false); panel.start(); control = {};
       try {
+        // Limits so the button can never stay stuck: 20 s to start hearing you, 12 s for the score.
+        let limit = setTimeout(() => control.stop?.("timeout"), 20000);
         const r = await P().assess(item.text, { control,
           onListening: () => { panel.listening(); setMic("Stop", true, true); },
           onSpeech: () => panel.speech(),
-          onChecking: () => { panel.checking(); setMic("Attendi…", false); } });
+          onChecking: () => { panel.checking(); setMic("Annulla", true, true); clearTimeout(limit); limit = setTimeout(() => control.stop?.("timeout"), 12000); } });
+        clearTimeout(limit);
         panel.stop();
         const al = align(item.text, r.words); paintSentence(sentence, item.text, al, true);
         const n = r.pron;
@@ -606,7 +609,8 @@ dl.facts dd { margin: 0; min-width: 0; }
         setMic("Rileggi", true);
       } catch (err) {
         panel.stop(); setMic(was, true);
-        if (err?.code !== "stopped") { pronError(errBox, err); box.dispatchEvent(new CustomEvent("micerror", { bubbles: true })); }
+        if (err?.code === "timeout") { errBox.hidden = false; errBox.textContent = "Il controllo della pronuncia non ha risposto in tempo. Premi di nuovo e rileggi: di solito la seconda volta va."; box.dispatchEvent(new CustomEvent("micerror", { bubbles: true })); }
+        else if (err?.code !== "stopped") { pronError(errBox, err); box.dispatchEvent(new CustomEvent("micerror", { bubbles: true })); }
       }
       busy = false; listen.disabled = false; control = null;
     };
