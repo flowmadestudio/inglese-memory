@@ -61,36 +61,66 @@ function phases(rec, { onListening, onSpeech, onChecking } = {}) {
   rec.speechEndDetected = () => onChecking?.();
 }
 
+// Record the learner reading `reference`, then our server asks Azure for the scores.
+// Recording stops by itself after ~1.2 s of silence (or 15 s at most). control.stop() cancels.
 async function assess(reference, { onListening, onSpeech, onChecking, control } = {}) {
-  const { SDK, cfg } = await config();
-  cfg.speechRecognitionLanguage = "en-US";
-  const audio = SDK.AudioConfig.fromDefaultMicrophoneInput();
-  const pa = new SDK.PronunciationAssessmentConfig(reference, SDK.PronunciationAssessmentGradingSystem.HundredMark, SDK.PronunciationAssessmentGranularity.Phoneme, true);
-  pa.phonemeAlphabet = "IPA";
-  try { pa.enableProsodyAssessment = true; } catch {}
-  const rec = new SDK.SpeechRecognizer(cfg, audio);
-  pa.applyTo(rec);
-  phases(rec, { onListening, onSpeech, onChecking });
-  const result = await stoppable(rec, control);
-  if (result.reason === SDK.ResultReason.Canceled) {
-    const det = SDK.CancellationDetails.fromResult(result);
-    throw Object.assign(new Error(det.errorDetails || "canceled"), { code: /permission|NotAllowed|microphone/i.test(det.errorDetails || "") ? "mic" : "canceled" });
-  }
-  if (result.reason !== SDK.ResultReason.RecognizedSpeech) throw Object.assign(new Error("nomatch"), { code: "nomatch" });
-  const json = JSON.parse(result.properties.getProperty(SDK.PropertyId.SpeechServiceResponse_JsonResult));
-  const best = json.NBest?.[0] || {};
-  const s = best.PronunciationAssessment || {};
+  if (!window.Account?.signedIn()) throw Object.assign(new Error("login"), { code: "login" });
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } }); }
+  catch { throw Object.assign(new Error("mic"), { code: "mic" }); }
+  const ctx = new (window.AudioContext || window.webkitAudioContext)(); await ctx.resume();
+  const src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain();
+  mute.gain.value = 0; src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+  const chunks = [];
+  const cleanup = () => { try { proc.disconnect(); src.disconnect(); } catch {} stream.getTracks().forEach(t => t.stop()); ctx.close().catch(() => {}); };
+  const recorded = await new Promise((resolve, reject) => {
+    const t0 = performance.now(); let floor = null, spoke = false, lastVoice = 0, done = false;
+    const finish = (err) => { if (done) return; done = true; cleanup(); err ? reject(err) : resolve(); };
+    if (control) control.stop = (code = "stopped") => finish(Object.assign(new Error(code), { code }));
+    onListening?.();
+    proc.onaudioprocess = e => {
+      if (done) return;
+      const d = e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d));
+      let sum = 0; for (let i = 0; i < d.length; i++) sum += d[i] * d[i]; const rms = Math.sqrt(sum / d.length);
+      const now = performance.now() - t0;
+      if (now < 300) { floor = floor == null ? rms : Math.max(floor, rms); return; } // room noise
+      const voice = rms > Math.max(.015, (floor || 0) * 2.5);
+      if (voice) { lastVoice = now; if (!spoke) { spoke = true; onSpeech?.(); } }
+      if (spoke && now - lastVoice > 1200) finish();                                          // finished speaking
+      else if (now > 15000) spoke ? finish() : finish(Object.assign(new Error("nomatch"), { code: "nomatch" }));
+      else if (!spoke && now > 8000) finish(Object.assign(new Error("nomatch"), { code: "nomatch" })); // never started
+    };
+  }).then(() => ({ samples: chunks, rate: ctx.sampleRate }));
+  onChecking?.();
+  const wav = toWav16k(recorded.samples, recorded.rate);
+  // While waiting for the server, Annulla / the page's time limit still work.
+  const cancelled = new Promise((_, rej) => { if (control) control.stop = (code = "stopped") => rej(Object.assign(new Error(code), { code })); });
+  let json;
+  try { json = await Promise.race([window.Account.pronounce(wav, reference), cancelled]); }
+  catch (e) { throw Object.assign(new Error(e.message), { code: e.code || "server" }); }
+  if (json.RecognitionStatus !== "Success" || !json.NBest?.length) throw Object.assign(new Error("nomatch"), { code: "nomatch" });
+  const best = json.NBest[0], sc = best.PronunciationAssessment || best;
+  const score = o => Math.round(o?.PronunciationAssessment?.AccuracyScore ?? o?.AccuracyScore ?? 0);
   return {
-    heard: result.text,
-    pron: Math.round(s.PronScore ?? 0), accuracy: Math.round(s.AccuracyScore ?? 0),
-    fluency: Math.round(s.FluencyScore ?? 0), completeness: Math.round(s.CompletenessScore ?? 0),
-    prosody: s.ProsodyScore != null ? Math.round(s.ProsodyScore) : null,
-    words: (best.Words || []).map(w => ({
-      word: w.Word, score: Math.round(w.PronunciationAssessment?.AccuracyScore ?? 0),
-      error: w.PronunciationAssessment?.ErrorType || "None",
-      phonemes: (w.Phonemes || []).map(p => ({ ipa: p.Phoneme, score: Math.round(p.PronunciationAssessment?.AccuracyScore ?? 0) })),
-    })),
+    heard: json.DisplayText || best.Display || "",
+    pron: Math.round(sc.PronScore ?? 0), accuracy: Math.round(sc.AccuracyScore ?? 0),
+    fluency: Math.round(sc.FluencyScore ?? 0), completeness: Math.round(sc.CompletenessScore ?? 0),
+    prosody: sc.ProsodyScore != null ? Math.round(sc.ProsodyScore) : null,
+    words: (best.Words || []).map(w => ({ word: w.Word, score: score(w), error: w.PronunciationAssessment?.ErrorType || w.ErrorType || "None",
+      phonemes: (w.Phonemes || []).map(p => ({ ipa: p.Phoneme, score: score(p) })) })),
   };
+}
+// Float32 chunks at the device rate → 16 kHz 16-bit mono WAV (what Azure expects).
+function toWav16k(chunks, rate) {
+  const len = chunks.reduce((n, c) => n + c.length, 0), all = new Float32Array(len); let o = 0; for (const c of chunks) { all.set(c, o); o += c.length; }
+  const ratio = rate / 16000, n = Math.floor(len / ratio), pcm = new Int16Array(n);
+  for (let i = 0; i < n; i++) { const a = Math.floor(i * ratio), b = Math.min(len, Math.floor((i + 1) * ratio)); let s = 0; for (let j = a; j < b; j++) s += all[j]; const v = s / Math.max(1, b - a); pcm[i] = Math.max(-1, Math.min(1, v)) * 0x7fff; }
+  const buf = new ArrayBuffer(44 + pcm.length * 2), dv = new DataView(buf);
+  const str = (off, t) => [...t].forEach((ch, i) => dv.setUint8(off + i, ch.charCodeAt(0)));
+  str(0, "RIFF"); dv.setUint32(4, 36 + pcm.length * 2, true); str(8, "WAVE"); str(12, "fmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, 16000, true); dv.setUint32(28, 32000, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); str(36, "data"); dv.setUint32(40, pcm.length * 2, true);
+  new Int16Array(buf, 44).set(pcm);
+  return new Blob([buf], { type: "audio/wav" });
 }
 
 // Free speech to text (no reference sentence): for "say it in English" and "remember the word".

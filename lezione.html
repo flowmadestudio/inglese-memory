@@ -532,7 +532,7 @@ dl.facts dd { margin: 0; min-width: 0; }
     box.textContent = err?.code === "login" ? "Per il voto della pronuncia devi essere entrato con il tuo account."
       : err?.code === "mic" ? "Il browser non mi lascia usare il microfono. Permettilo dall'icona accanto all'indirizzo e riprova."
       : err?.code === "nomatch" ? "Non ho sentito niente. Premi il microfono e leggi subito, a voce normale."
-      : /429/.test(err?.message) ? "Per oggi hai usato tutte le prove di pronuncia. Riprendi domani!" : "Il controllo della pronuncia non risponde. Riprova tra poco.";
+      : err?.code === "limit" || /429/.test(err?.message) ? "Per oggi hai usato tutte le prove di pronuncia. Riprendi domani!" : "Il controllo della pronuncia non risponde. Riprova tra poco.";
   }
 
   // What the microphone is doing, always visible: preparing → listening (live waves) → hearing you → checking.

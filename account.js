@@ -159,6 +159,15 @@ window.Account = {
   load: readLocal,
   // A short-lived Azure Speech token from our server (the Azure key stays on the server).
   speechToken: () => api("/speech-token"),
+  // Send a recording to our server for the pronunciation score.
+  async pronounce(wav, ref) {
+    const user = auth.currentUser;
+    if (!user) throw Object.assign(new Error("login"), { code: "login" });
+    const token = await user.getIdToken();
+    const res = await fetch(API + "/pronunciation?ref=" + encodeURIComponent(ref), { method: "POST", headers: { "Authorization": "Bearer " + token, "Content-Type": "audio/wav" }, body: wav });
+    if (!res.ok) throw Object.assign(new Error("api " + res.status), { code: res.status === 429 ? "limit" : res.status === 401 ? "login" : "server" });
+    return res.json();
+  },
   signedIn: () => !!auth.currentUser,
   // Every saved item (word, pair or phrase) as {key: data}, from this browser's copy.
   all() {
